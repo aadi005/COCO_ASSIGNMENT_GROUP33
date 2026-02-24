@@ -2,7 +2,7 @@
 #define LEXERDEF_H
 
 #define MAX_LEXEME_LEN 30
-#define MAX_STATES 64
+#define MAX_STATES 65
 #define BUFFER_SIZE 50
 
 typedef enum {
@@ -134,4 +134,4 @@ typedef struct {
 
 extern int transitionMatrix[MAX_STATES][INPUT_COUNT];
 
-#endif LEXERDEF_H
+#endif
