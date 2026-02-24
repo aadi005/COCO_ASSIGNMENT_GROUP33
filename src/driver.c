@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
     char *parseTreeOutFile = argv[2];
 
     /* Load the Transition Table from your CSV file */
-    loadTransitionMatrix("transitionTable.xlsx - Sheet1.csv");
+    loadTransitionMatrix("/Users/aadityagoel/Downloads/BITS/4-2/COCO/project/data/transitionTable.xlsx");
 
     /* Initialize the accept state map (defined in lexer.c) */
     initializeAcceptStateMap();
