@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "lexer.h"
-#include "lexerDef.h"
 
 /* Helper to handle the 'others' retraction logic */
 void handleRetraction(twinBuffer *tb, int state) {

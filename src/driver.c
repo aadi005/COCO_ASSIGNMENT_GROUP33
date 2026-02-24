@@ -4,6 +4,8 @@
 #include <time.h>
 
 #include "lexer.h"
+#include "stateHandlers.h"
+
 /* Parser will be added later */
 //#include "parser.h"   /* Leave this include for later implementation */
 
