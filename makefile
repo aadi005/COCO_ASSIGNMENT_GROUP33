@@ -12,10 +12,11 @@ SRC_DIR = src
 
 # Source files $(SRC_DIR)/parser.c
 SRCS = $(SRC_DIR)/driver.c \
-       $(SRC_DIR)/lexer.c
+       $(SRC_DIR)/lexer.c \
+	   $(SRC_DIR)/stateHandlers.c
 
 # Object files (generated in root directory) parser.o
-OBJS = driver.o lexer.o 
+OBJS = driver.o lexer.o stateHandlers.o 
 
 
 # Default target
@@ -33,7 +34,7 @@ driver.o: $(SRC_DIR)/driver.c $(SRC_DIR)/lexer.h
 
 
 # Compile lexer
-lexer.o: $(SRC_DIR)/lexer.c $(SRC_DIR)/lexerDef.h
+lexer.o: $(SRC_DIR)/lexer.c $(SRC_DIR)/lexerDef.h $(SRC_DIR)/stateHandler.h
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/lexer.c -o lexer.o
 
 
