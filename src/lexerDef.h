@@ -8,6 +8,9 @@
 #define BUFFER_SIZE 50
 
 typedef enum {
+    // Special token used for comment lines (lexeme is "%")
+    TK_COMMENT,
+
     // Keywords
     TK_WITH,
     TK_PARAMETERS,

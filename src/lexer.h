@@ -10,8 +10,8 @@ twinBuffer* initializeLexer(FILE *fp);
 /* Refills the appropriate buffer block */
 void refillBuffer(twinBuffer *tb);
 
-/* Returns next character from twin buffer */
-char getNextChar(twinBuffer *tb);
+/* Returns next character from twin buffer (EOF as int) */
+int getNextChar(twinBuffer *tb);
 
 /* Retracts forward pointer by one position */
 void retract(twinBuffer *tb);

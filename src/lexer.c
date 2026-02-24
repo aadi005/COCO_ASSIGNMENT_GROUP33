@@ -4,13 +4,15 @@
 #include "lexer.h"
 #include "lexerDef.h"
 #include "stateHandlers.h"
+#include <ctype.h>   // for isalnum, isalpha, etc
 
 /* Definition of the global accept state map */
 StateHandler acceptStateMap[MAX_STATES] = { NULL };
 
 /* Helper to map characters to the transition matrix columns based on CSV header */
-InputType mapCharToEnum(char ch) {
-    if (ch == EOF) return EOF_TYPE;
+InputType mapCharToEnum(int ch) {
+    // Treat both the EOF constant and any embedded nulls as end-of-file input
+    if (ch == EOF || ch == '\0') return EOF_TYPE;
     if (ch == ' ' || ch == '\t' || ch == '\r') return DELIM;
     if (ch == '\n') return NEWLINE;
     
@@ -73,19 +75,24 @@ void refillBuffer(twinBuffer *tb) {
     }
 }
 
-char getNextChar(twinBuffer *tb) {
-    char ch;
+int getNextChar(twinBuffer *tb) {
+    int ch;
     if (tb->currentBuffer == 1) {
-        ch = tb->buffer1[tb->forward];
+        ch = (unsigned char)tb->buffer1[tb->forward];
     } else {
-        ch = tb->buffer2[tb->forward];
+        ch = (unsigned char)tb->buffer2[tb->forward];
     }
-    
+
     tb->forward++;
     if (tb->forward == BUFFER_SIZE) {
         refillBuffer(tb);
         tb->forward = 0;
     }
+    /* If we've read past the end of actual input the buffer will contain
+       zeroes (we memset when we refill). Treat a null character as EOF so
+       that the DFA can terminate cleanly. */
+    if (ch == '\0')
+        return EOF;
     return ch;
 }
 
@@ -100,7 +107,7 @@ void retract(twinBuffer *tb) {
 tokenInfo getNextToken(twinBuffer *tb) {
     int currentState = 1;
     int nextState;
-    char ch;
+    int ch;                    // now holds EOF sentinel as an int
     tokenInfo tk;
     int lp = 0;
     static int lineNo = 1;
@@ -111,12 +118,71 @@ tokenInfo getNextToken(twinBuffer *tb) {
 
     while (1) {
         ch = getNextChar(tb);
-        InputType input = mapCharToEnum(ch);
-
-        // Immediate EOF handling
+        // Immediate EOF handling (also catches null buffers)
         if (ch == EOF) {
             tk.token = TK_EOF;
             strcpy(tk.lexeme, "EOF");
+            tk.lineNo = lineNo;
+            return tk;
+        }
+
+        /* --- UNDERSCORE / FUNID HANDLING ---
+           Function identifiers and other names start with an underscore.  Instead
+           of letting the DFA drop them into a sink state, handle them explicitly.
+           Collect characters until a non-alphanumeric/underscore is seen. */
+        if (ch == '_') {
+            int lp2 = 0;
+            tk.lexeme[lp2++] = '_';
+            tk.lexeme[lp2] = '\0';
+            while (1) {
+                int nxt = getNextChar(tb);
+                if (nxt == EOF) break;
+                if (isalnum(nxt) || nxt == '_') {
+                    if (lp2 < MAX_LEXEME_LEN - 1) {
+                        tk.lexeme[lp2++] = nxt;
+                        tk.lexeme[lp2] = '\0';
+                    }
+                    continue;
+                }
+                /* push the non-matching character back so it can be processed by
+                   the normal DFA on the next call */
+                retract(tb);
+                break;
+            }
+            tk.lineNo = lineNo;
+            /* special case: ``_main'' is reserved */
+            if (strcmp(tk.lexeme, "_main") == 0) {
+                tk.token = TK_MAIN;
+            } else {
+                tk.token = TK_FUNID;
+            }
+            return tk;
+        }
+
+        /* --- COMMENT HANDLING ---
+           A percent sign begins a comment; the entire rest of the line is ignored
+           but a TK_COMMENT token with lexeme "%" is returned so that the parser
+           (or test harness) can log its presence.  Subsequent characters up to and
+           including the newline are consumed here. */
+        if (ch == '%') {
+            tk.token = TK_COMMENT;
+            strcpy(tk.lexeme, "%");
+            tk.lineNo = lineNo;
+            /* eat until end of line or file */
+            while ((ch = getNextChar(tb)) != EOF && ch != '\n');
+            if (ch == '\n') lineNo++;
+            return tk;
+        }
+
+        InputType input = mapCharToEnum(ch);
+        /* guard against unmapped characters returning INPUT_COUNT which would
+           index past the end of the transition table.  Unrecognised symbols
+           are considered lexical errors and produce a one‑character error
+           token. */
+        if (input == INPUT_COUNT) {
+            tk.token = TK_ERROR;
+            tk.lexeme[0] = ch;
+            tk.lexeme[1] = '\0';
             tk.lineNo = lineNo;
             return tk;
         }
@@ -247,9 +313,29 @@ void removeComments(char *inputFile, char *outputFile) {
 }
 
 void printToken(tokenInfo tk) {
-    // Mapping enum to string for printing
-    char *tokenNames[] = { "TK_WITH", "TK_PARAMETERS", /* ... fill based on your enum ... */ "TK_ID", "TK_NUM" };
-    printf("%-20s %-20s %-10d\n", tk.lexeme, "TOKEN_TYPE", tk.lineNo);
+    /* A full string table matching the TokenName enum order.  If you add new
+       tokens to lexerDef.h make sure to update this array accordingly. */
+    static const char *tokenNames[] = {
+        "TK_COMMENT",          /* added for "%" */
+        "TK_WITH", "TK_PARAMETERS", "TK_END", "TK_WHILE", "TK_UNION",
+        "TK_ENDUNION", "TK_DEFINETYPE", "TK_AS", "TK_TYPE", "TK_MAIN",
+        "TK_GLOBAL", "TK_PARAMETER", "TK_LIST", "TK_INPUT", "TK_OUTPUT",
+        "TK_INT", "TK_REAL", "TK_ENDWHILE", "TK_IF", "TK_THEN",
+        "TK_ENDIF", "TK_READ", "TK_WRITE", "TK_RETURN", "TK_CALL",
+        "TK_RECORD", "TK_ENDRECORD", "TK_ELSE", "TK_ASSIGNOP", "TK_PLUS",
+        "TK_MINUS", "TK_MUL", "TK_DIV", "TK_AND", "TK_OR", "TK_NOT",
+        "TK_LT", "TK_LE", "TK_EQ", "TK_GT", "TK_GE", "TK_NE",
+        "TK_SQL", "TK_SQR", "TK_OP", "TK_CL", "TK_COMMA", "TK_SEM",
+        "TK_COLON", "TK_DOT", "TK_ID", "TK_FUNID", "TK_FIELDID",
+        "TK_RUID", "TK_NUM", "TK_RNUM", "TK_EOF", "TK_ERROR"
+    };
+
+    const char *name = "UNKNOWN";
+    if (tk.token >= 0 && tk.token < (int)(sizeof(tokenNames)/sizeof(tokenNames[0]))) {
+        name = tokenNames[tk.token];
+    }
+
+    printf("%-20s %-20s %-10d\n", tk.lexeme, name, tk.lineNo);
 }
 
 TokenName checkKeyword(char *lexeme) {
