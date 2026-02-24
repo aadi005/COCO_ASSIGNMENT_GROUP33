@@ -29,14 +29,14 @@ $(TARGET): $(OBJS)
 
 
 # Compile driver $(SRC_DIR)/parser.h
-driver.o: $(SRC_DIR)/driver.c $(SRC_DIR)/lexer.h $(SRC_DIR)/stateHandler.h
+driver.o: $(SRC_DIR)/driver.c $(SRC_DIR)/lexer.h $(SRC_DIR)/stateHandlers.h
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/driver.c -o driver.o
 
 # Compile lexer
 lexer.o: $(SRC_DIR)/lexer.c $(SRC_DIR)/lexerDef.h 
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/lexer.c -o lexer.o
 
-statehandler.o: $(SRC_DIR)/stateHandlers.c $(SRC_DIR)/stateHandler.h
+stateHandlers.o: $(SRC_DIR)/stateHandlers.c $(SRC_DIR)/stateHandlers.h
 	$(CC) $(CFLAGS) -c $(SRC_DIR)/stateHandlers.c -o stateHandlers.o
 
 
