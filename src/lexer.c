@@ -21,9 +21,11 @@ InputType mapCharToEnum(int ch) {
     if (ch >= '0' && ch <= '9') return DIGIT;
     
     // Character classes for identifiers as defined in regex
-    if (ch == 'a' || ch == 'b') return ALPHA;
-    if (ch == 'c' || ch == 'd') return ALPHA1;
-    if (ch >= 'e' && ch <= 'z') return ALPHA2;
+    
+    if (ch=='b' || ch == 'c' || ch == 'd') return ALPHA1;
+    if (ch >= 'a' && ch <= 'z' && (ch!='b' && ch != 'c' && ch != 'd')) return ALPHA2;
+    if (ch >= 'a' && ch <= 'z') return ALPHA;
+    
     if ((ch >= 'A' && ch <= 'Z')) return ALPHABET;
 
     switch (ch) {
@@ -44,6 +46,8 @@ InputType mapCharToEnum(int ch) {
         case ':': return COLON;
         case '(': return OPEN_PAREN;
         case ')': return CLOSE_PAREN;
+        case '[': return L_SQR;
+        case ']': return R_SQR;
         case '_': return UNDERSCORE;
         case '&': return AMPERSAND;
         default: return INPUT_COUNT; 
@@ -118,10 +122,40 @@ tokenInfo getNextToken(twinBuffer *tb) {
 
     while (1) {
         ch = getNextChar(tb);
-        // Immediate EOF handling (also catches null buffers)
+
+        /* --- EOF HANDLING ---
+           Instead of returning immediately when EOF is encountered we defer the
+           decision.  This allows a token that ended exactly at end-of-file to be
+           flushed out before the EOF token itself is generated.  The variable
+           "lp" tracks how many characters have been accumulated in the current
+           lexeme.  If we are mid‑token we break the loop and handle the lexeme
+           after the loop; otherwise we can return the EOF token right away. */
         if (ch == EOF) {
+            if (lp > 0) {
+                /* there is a partial lexeme waiting – break so it can be
+                   finalised below */
+                break;
+            }
             tk.token = TK_EOF;
             strcpy(tk.lexeme, "EOF");
+            tk.lineNo = lineNo;
+            return tk;
+        }
+
+        /* --- DIRECT BRACKET HANDLING ---
+           The DFA defined in the transition matrix did not previously support
+           square brackets because the InputType enum lacked corresponding
+           entries.  For simplicity we treat them as single-character tokens
+           here before invoking the main DFA. */
+        if (ch == '[') {
+            tk.token = TK_SQL;
+            strcpy(tk.lexeme, "[");
+            tk.lineNo = lineNo;
+            return tk;
+        }
+        if (ch == ']') {
+            tk.token = TK_SQR;
+            strcpy(tk.lexeme, "]");
             tk.lineNo = lineNo;
             return tk;
         }
@@ -179,6 +213,10 @@ tokenInfo getNextToken(twinBuffer *tb) {
            index past the end of the transition table.  Unrecognised symbols
            are considered lexical errors and produce a one‑character error
            token. */
+
+        if (currentState!=1 && (input==ALPHA1 || input==ALPHA2) ){
+            input = ALPHA;
+        }
         if (input == INPUT_COUNT) {
             tk.token = TK_ERROR;
             tk.lexeme[0] = ch;
@@ -231,9 +269,24 @@ tokenInfo getNextToken(twinBuffer *tb) {
                 tk.lexeme[lp++] = ch;
                 tk.lexeme[lp] = '\0';
             }
+            /* capture the current line number before invoking handler; the
+               handlers themselves do not set the line number, so we overwrite
+               it on whatever token they return. */
             tk.lineNo = lineNo;
-            // Execute the handler (which manages retraction if it's an "others" state)
-            return acceptStateMap[nextState](tk.lexeme, nextState);
+            tokenInfo result = acceptStateMap[nextState](tk.lexeme, nextState);
+            result.lineNo = lineNo;
+            return result;
+        }
+
+        /* --- DELIMITER / NEWLINE HANDLING ---
+           When in state 1, skip all leading whitespace (delimiters & newlines).
+           When NOT in state 1 and a delimiter appears, treat it as end-of-token
+           marker *only if* we're in an accept state or the DFA would reject it anyway. */
+        if (currentState == 1 && (input == DELIM || input == NEWLINE)) {
+            // Skip leading whitespace in state 1
+            if (input == NEWLINE) lineNo++;
+            tb->lexemeBegin = tb->forward;
+            continue;
         }
 
         /* --- STATE TRANSITION LOGIC --- */
@@ -241,19 +294,39 @@ tokenInfo getNextToken(twinBuffer *tb) {
         // Update line count on newlines
         if (ch == '\n') lineNo++;
 
-        // Append to lexeme only if we aren't just skipping delimiters at the start
-        if (!(currentState == 1 && input == DELIM) && !(currentState == 1 && input == NEWLINE)) {
-            if (lp < MAX_LEXEME_LEN - 1) {
-                tk.lexeme[lp++] = ch;
-                tk.lexeme[lp] = '\0';
-            }
-        } else {
-            // If we are in state 1 and see whitespace, keep lexemeBegin aligned with forward
-            tb->lexemeBegin = tb->forward;
+        // Append character to lexeme
+        if (lp < MAX_LEXEME_LEN - 1) {
+            tk.lexeme[lp++] = ch;
+            tk.lexeme[lp] = '\0';
         }
 
         currentState = nextState;
     }
+
+    /* --- EOF CLEANUP ---
+       we exited the loop because ch was EOF while lp>0.  The lexeme buffer
+       contains the characters that have been read so far; finalise a token
+       based on the current DFA state.  If the state is accepting we simply
+       invoke its handler, otherwise report a lexical error. */
+    if (lp > 0) {
+        if (acceptStateMap[currentState] != NULL) {
+            tokenInfo result = acceptStateMap[currentState](tk.lexeme, currentState);
+            result.lineNo = lineNo;
+            return result;
+        } else {
+            tk.token = TK_ERROR;
+            tk.lexeme[lp] = '\0';
+            tk.lineNo = lineNo;
+            return tk;
+        }
+    }
+
+    /* no lexeme pending – fall through and return EOF token (should not
+       ordinarily happen because it would have been returned earlier) */
+    tk.token = TK_EOF;
+    strcpy(tk.lexeme, "EOF");
+    tk.lineNo = lineNo;
+    return tk;
 }
 void initializeAcceptStateMap() {
     // Initialization of all entries to NULL is already handled by { NULL }
@@ -343,6 +416,17 @@ TokenName checkKeyword(char *lexeme) {
     if (strcmp(lexeme, "parameters") == 0) return TK_PARAMETERS;
     if (strcmp(lexeme, "end") == 0) return TK_END;
     if (strcmp(lexeme, "while") == 0) return TK_WHILE;
-    // ... add all keywords from your enum ...
+    if (strcmp(lexeme, "input") == 0) return TK_INPUT;
+    if (strcmp(lexeme, "parameter") == 0) return TK_PARAMETER;
+    if (strcmp(lexeme, "list") == 0) return TK_LIST;
+    if (strcmp(lexeme, "type") == 0) return TK_TYPE;
+    if (strcmp(lexeme, "int") == 0) return TK_INT;
+    if (strcmp(lexeme, "real") == 0) return TK_REAL;
+    if (strcmp(lexeme, "output") == 0) return TK_OUTPUT;
+    if (strcmp(lexeme, "return") == 0) return TK_RETURN;
+    if (strcmp(lexeme, "read") == 0) return TK_READ;
+    if (strcmp(lexeme, "write") == 0) return TK_WRITE;
+    if (strcmp(lexeme, "call") == 0) return TK_CALL;
+    if (strcmp(lexeme, "endwhile") == 0) return TK_ENDWHILE;
     return TK_ID; // Default if not a keyword
 }

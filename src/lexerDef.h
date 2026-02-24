@@ -113,7 +113,9 @@ typedef enum {
     CLOSE_PAREN,    // )
     COLON,          // : 
     OPEN_PAREN,     // (
-    UNDERSCORE,     // _ 
+    UNDERSCORE,     // _
+    L_SQR,          // [  (left square bracket input type)
+    R_SQR,          // ]  (right square bracket input type)
     INPUT_COUNT     // Helper to track size
 } InputType;
 
@@ -146,7 +148,7 @@ typedef tokenInfo (*StateHandler)(char* lexeme, int state);
 /* External declarations for the transition matrix and the accept state map.
    These must be defined in your .c files.
 */
-extern int transitionMatrix[67][30];
+extern int transitionMatrix[67][INPUT_COUNT];
 extern StateHandler acceptStateMap[MAX_STATES];
 
 #endif

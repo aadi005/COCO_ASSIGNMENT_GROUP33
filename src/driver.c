@@ -16,9 +16,9 @@
    Reads transitionTable.xlsx - Sheet1.csv into transitionMatrix
    ========================================================== */
 
-int transitionMatrix[67][30] = {
+int transitionMatrix[67][INPUT_COUNT] = {
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    {52, 65, 65, 11, 9, 65, 41, 43, 44, 2, 32, 28, 28, 16, 24, 22, 21, 38, 49, 63, 15, 18, 17, 30, 35, 65, 25, 23, 26, 45},
+    {52, 65, 65, 11, 9, 65, 41, 43, 44, 2, 32, 28, 28, 16, 24, 22, 21, 38, 49, 63, 15, 18, 17, 30, 35, 65, 25, 23, 26, 45, 19, 20},
     {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 7, 3, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8},
     {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8},
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 5, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
@@ -86,6 +86,23 @@ int transitionMatrix[67][30] = {
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65}
 };
 
+/*
+ * After compiling the static initializer we need to fill in the two new
+ * input-type columns that were added for square brackets.  The original
+ * matrix only provided 30 entries per row, so the last two columns (L_SQR
+ * and R_SQR) will be zero-initialized.  Make them sink states by default
+ * and then set the special transitions out of state 1 as requested by the
+ * language spec.
+ */
+static void initializeBracketColumns() {
+    for (int r = 0; r < 67; ++r) {
+        transitionMatrix[r][L_SQR] = 65;
+        transitionMatrix[r][R_SQR] = 65;
+    }
+    /* state 1 transitions for '[' and ']' */
+    transitionMatrix[1][L_SQR] = 19;
+    transitionMatrix[1][R_SQR] = 20;
+}
 
 void loadTransitionMatrix(const char *csvFile) {
     FILE *fp = fopen(csvFile, "r");
@@ -179,36 +196,6 @@ int main(int argc, char *argv[]) {
 
     char *sourceFile = argv[1];
     char *parseTreeOutFile = argv[2];
-
-    /* Load the Transition Table from your CSV file */
-    
-    //loadTransitionMatrix("/Users/aadityagoel/Downloads/BITS/4-2/COCO/project/data/transitionTable.xlsx");
-
-    
-    printf("\n--- Transition Matrix Debug ---\n");
-    
-    // Print header (column indices)
-    printf("%-5s", "ST");
-    for (int i = 0; i < INPUT_COUNT; i++) {
-        printf("%-4d", i);
-    }
-    printf("\n");
-
-    // Print rows
-    for (int i = 1; i < MAX_STATES; i++) {
-        printf("%-5d", i);
-        for (int j = 0; j < INPUT_COUNT; j++) {
-            // Print sink states (65) as dots or special markers to make it readable
-            if (transitionMatrix[i][j] == 65) {
-                printf("%-4s", "."); 
-            } else {
-                printf("%-4d", transitionMatrix[i][j]);
-            }
-        }
-        printf("\n");
-    }
-    printf("-------------------------------\n\n");
-
 
     /* Initialize the accept state map (defined in lexer.c) */
     initializeAcceptStateMap();
