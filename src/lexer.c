@@ -3,6 +3,7 @@
 #include <string.h>
 #include "lexer.h"
 #include "lexerDef.h"
+#include "stateHandlers.h"
 
 /* Definition of the global accept state map */
 StateHandler acceptStateMap[MAX_STATES] = { NULL };
@@ -165,4 +166,42 @@ tokenInfo getNextToken(twinBuffer *tb) {
 
         currentState = nextState;
     }
+}
+
+void initializeAcceptStateMap() {
+    // Initialization of all entries to NULL is already handled by { NULL }
+    
+    // --- Operator Accept States ---
+    acceptStateMap[5]  = handle_TK_ASSIGNOP;  // <---
+    acceptStateMap[15] = handle_TK_PLUS;      // +
+    acceptStateMap[16] = handle_TK_MINUS;     // -
+    acceptStateMap[17] = handle_TK_MUL;       // *
+    acceptStateMap[18] = handle_TK_DIV;       // /
+    acceptStateMap[37] = handle_TK_AND;       // &&&
+
+    // --- Identifier and Keyword Accept States ---
+    acceptStateMap[10] = handle_TK_FUNID;     // Functions/Main
+    acceptStateMap[14] = handle_TK_ID;        // ID using digit1 (2-7)
+    acceptStateMap[48] = handle_TK_ID;        // Generic Identifier
+
+    // --- Numeric Accept States ---
+    acceptStateMap[61] = handle_TK_NUM;       // Integer
+    acceptStateMap[62] = handle_TK_RNUM;      // Real Number
+
+    // --- Delimiter Accept States ---
+    acceptStateMap[22] = handle_TK_SEM;       // ;
+    acceptStateMap[21] = handle_TK_COMMA;     // ,
+    acceptStateMap[20] = handle_TK_SQL;       // [
+    acceptStateMap[19] = handle_TK_SQR;       // ]
+    acceptStateMap[26] = handle_TK_OP;        // (
+    acceptStateMap[25] = handle_TK_CL;        // )
+    acceptStateMap[23] = handle_TK_COLON;     // :
+    acceptStateMap[24] = handle_TK_DOT;       // .
+
+    // --- Special Accept States ---
+    acceptStateMap[44] = handle_TK_EOF;       // End of file
+    
+    /* Note: State 64 handles comment removal. It typically does not 
+       return a token but resets the DFA to State 1.
+    */
 }
