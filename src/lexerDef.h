@@ -1,6 +1,8 @@
 #ifndef LEXERDEF_H
 #define LEXERDEF_H
 
+#include <stdio.h>
+
 #define MAX_LEXEME_LEN 30
 #define MAX_STATES 65
 #define BUFFER_SIZE 50
@@ -105,7 +107,7 @@ typedef enum {
     EXCLAMATION,    // ! 
     AMPERSAND,      // &
     EPSILON,        // epsilon 
-    CLOSE_PAREN,    // )//
+    CLOSE_PAREN,    // )
     COLON,          // : 
     OPEN_PAREN,     // (
     UNDERSCORE,     // _ 
@@ -116,10 +118,11 @@ typedef struct {
     TokenName token;
     char lexeme[MAX_LEXEME_LEN];
     int lineNo;
+    // Named the union 'val' to fix "unnamed union" field access errors
     union {
         int intValue;
         float realValue;
-    } value;
+    } val; 
 
 } tokenInfo;
 
@@ -132,6 +135,15 @@ typedef struct {
     FILE *fp;
 } twinBuffer;
 
+/* Defining the function pointer type for state handlers.
+   It takes the lexeme and the accept state index, returning a tokenInfo.
+*/
+typedef tokenInfo (*StateHandler)(char* lexeme, int state);
+
+/* External declarations for the transition matrix and the accept state map.
+   These must be defined in your .c files.
+*/
 extern int transitionMatrix[MAX_STATES][INPUT_COUNT];
+extern StateHandler acceptStateMap[MAX_STATES];
 
 #endif
