@@ -5,7 +5,7 @@
 
 #include "lexer.h"
 /* Parser will be added later */
-#include "parser.h"   /* Leave this include for later implementation */
+//#include "parser.h"   /* Leave this include for later implementation */
 
 /* ===========================
    STATUS DISPLAY FUNCTION
