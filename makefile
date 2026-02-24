@@ -5,34 +5,43 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c11 -g
 
-# Executable name
 TARGET = stage1exe
 
-# Source files parser.c
-SRCS = driver.c lexer.c 
+# Source directory
+SRC_DIR = src
 
-# Object files parser.o
+# Source files $(SRC_DIR)/parser.c
+SRCS = $(SRC_DIR)/driver.c \
+       $(SRC_DIR)/lexer.c
+
+# Object files (generated in root directory) parser.o
 OBJS = driver.o lexer.o 
+
 
 # Default target
 all: $(TARGET)
 
-# Link object files to create executable
+
+# Link object files
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
 
-# Compile driver parser.h
-driver.o: driver.c lexer.h 
-	$(CC) $(CFLAGS) -c driver.c
+
+# Compile driver $(SRC_DIR)/parser.h
+driver.o: $(SRC_DIR)/driver.c $(SRC_DIR)/lexer.h 
+	$(CC) $(CFLAGS) -c $(SRC_DIR)/driver.c -o driver.o
+
 
 # Compile lexer
-lexer.o: lexer.c lexerDef.h
-	$(CC) $(CFLAGS) -c lexer.c
+lexer.o: $(SRC_DIR)/lexer.c $(SRC_DIR)/lexerDef.h
+	$(CC) $(CFLAGS) -c $(SRC_DIR)/lexer.c -o lexer.o
 
-# Compile parser
-# parser.o: parser.c parserDef.h lexer.h
-# 	$(CC) $(CFLAGS) -c parser.c
 
-# Clean generated files
+# # Compile parser
+# parser.o: $(SRC_DIR)/parser.c $(SRC_DIR)/parserDef.h $(SRC_DIR)/lexer.h
+# 	$(CC) $(CFLAGS) -c $(SRC_DIR)/parser.c -o parser.o
+
+
+# Clean
 clean:
 	rm -f $(OBJS) $(TARGET)
