@@ -106,3 +106,31 @@ tokenInfo handle_TK_EOF(char* lexeme, int state) {
     strcpy(tk.lexeme, "EOF");
     return tk;
 }
+
+tokenInfo handle_TK_AND(char* lexeme, int state) { 
+    tokenInfo tk; tk.token = TK_AND; strcpy(tk.lexeme, lexeme); return tk; 
+}
+tokenInfo handle_TK_MUL(char* lexeme, int state) { 
+    tokenInfo tk; tk.token = TK_MUL; strcpy(tk.lexeme, lexeme); return tk; 
+}
+tokenInfo handle_TK_DIV(char* lexeme, int state) { 
+    tokenInfo tk; tk.token = TK_DIV; strcpy(tk.lexeme, lexeme); return tk; 
+}
+tokenInfo handle_TK_SQL(char* lexeme, int state) { 
+    tokenInfo tk; tk.token = TK_SQL; strcpy(tk.lexeme, lexeme); return tk; 
+}
+tokenInfo handle_TK_SQR(char* lexeme, int state) { 
+    tokenInfo tk; tk.token = TK_SQR; strcpy(tk.lexeme, lexeme); return tk; 
+}
+tokenInfo handle_TK_OP(char* lexeme, int state) { 
+    tokenInfo tk; tk.token = TK_OP; strcpy(tk.lexeme, lexeme); return tk; 
+}
+tokenInfo handle_TK_CL(char* lexeme, int state) { 
+    tokenInfo tk; tk.token = TK_CL; strcpy(tk.lexeme, lexeme); return tk; 
+}
+tokenInfo handle_TK_COMMA(char* lexeme, int state) { 
+    tokenInfo tk; tk.token = TK_COMMA; strcpy(tk.lexeme, lexeme); return tk; 
+}
+tokenInfo handle_TK_COLON(char* lexeme, int state) { 
+    tokenInfo tk; tk.token = TK_COLON; strcpy(tk.lexeme, lexeme); return tk; 
+}

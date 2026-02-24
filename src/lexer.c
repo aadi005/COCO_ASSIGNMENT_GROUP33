@@ -205,3 +205,37 @@ void initializeAcceptStateMap() {
        return a token but resets the DFA to State 1.
     */
 }
+
+void removeComments(char *inputFile, char *outputFile) {
+    // Basic implementation: read from inputFile, skip text between % and \n, write to outputFile
+    FILE *src = fopen(inputFile, "r");
+    FILE *dest = fopen(outputFile, "w");
+    if (!src || !dest) return;
+
+    int ch;
+    while ((ch = fgetc(src)) != EOF) {
+        if (ch == '%') {
+            while ((ch = fgetc(src)) != EOF && ch != '\n');
+            if (ch == '\n') fputc('\n', dest);
+        } else {
+            fputc(ch, dest);
+        }
+    }
+    fclose(src);
+    fclose(dest);
+}
+
+void printToken(tokenInfo tk) {
+    // Mapping enum to string for printing
+    char *tokenNames[] = { "TK_WITH", "TK_PARAMETERS", /* ... fill based on your enum ... */ "TK_ID", "TK_NUM" };
+    printf("%-20s %-20s %-10d\n", tk.lexeme, "TOKEN_TYPE", tk.lineNo);
+}
+
+TokenName checkKeyword(char *lexeme) {
+    if (strcmp(lexeme, "with") == 0) return TK_WITH;
+    if (strcmp(lexeme, "parameters") == 0) return TK_PARAMETERS;
+    if (strcmp(lexeme, "end") == 0) return TK_END;
+    if (strcmp(lexeme, "while") == 0) return TK_WHILE;
+    // ... add all keywords from your enum ...
+    return TK_ID; // Default if not a keyword
+}
