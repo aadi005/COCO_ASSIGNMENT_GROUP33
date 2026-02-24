@@ -47,4 +47,4 @@ stateHandlers.o: $(SRC_DIR)/stateHandlers.c $(SRC_DIR)/stateHandlers.h
 
 # Clean
 clean:
-	rm -f $(OBJS) $(TARGET)
+	del /Q $(OBJS) $(TARGET)
