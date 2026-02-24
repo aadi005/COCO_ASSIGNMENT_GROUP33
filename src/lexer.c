@@ -105,13 +105,15 @@ tokenInfo getNextToken(twinBuffer *tb) {
     int lp = 0;
     static int lineNo = 1;
 
+    // Reset lexeme and token structure
     memset(tk.lexeme, 0, MAX_LEXEME_LEN);
+    tk.lineNo = lineNo;
 
     while (1) {
         ch = getNextChar(tb);
         InputType input = mapCharToEnum(ch);
-        
-        // Handle EOF immediately
+
+        // Immediate EOF handling
         if (ch == EOF) {
             tk.token = TK_EOF;
             strcpy(tk.lexeme, "EOF");
@@ -120,6 +122,19 @@ tokenInfo getNextToken(twinBuffer *tb) {
         }
 
         nextState = transitionMatrix[currentState][input];
+
+        /* --- SINK STATE / ERROR HANDLING --- */
+        // If the DFA hits state 65, it's a lexical error. 
+        // We stop here to prevent an infinite loop.
+        if (nextState == 65) {
+            tk.token = TK_ERROR;
+            if (lp < MAX_LEXEME_LEN - 1) {
+                tk.lexeme[lp++] = ch;
+                tk.lexeme[lp] = '\0';
+            }
+            tk.lineNo = lineNo;
+            return tk;
+        }
 
         /* --- ERRATA HANDLING --- */
 
@@ -132,9 +147,9 @@ tokenInfo getNextToken(twinBuffer *tb) {
         }
 
         // 2. Lexical Errata: 23.abc handling (Split TK_NUM, TK_DOT, TK_FIELDID)
-        // Accessing via tk.val.intValue to resolve unnamed union field error
+        // If we are in the integer state (52) and see a DOT, we accept the integer.
         if (currentState == 52 && input == DOT) {
-            retract(tb);
+            retract(tb); // Put the DOT back for the next getNextToken call
             tk.token = TK_NUM;
             tk.lexeme[lp] = '\0';
             tk.lineNo = lineNo;
@@ -143,31 +158,37 @@ tokenInfo getNextToken(twinBuffer *tb) {
         }
 
         /* --- ACCEPT STATE LOGIC --- */
-        // Check if the current transition leads to an accept state
+        // If the next state is a registered final state in our map
         if (acceptStateMap[nextState] != NULL) {
+            // Append the final character to the lexeme before finishing
+            if (lp < MAX_LEXEME_LEN - 1) {
+                tk.lexeme[lp++] = ch;
+                tk.lexeme[lp] = '\0';
+            }
             tk.lineNo = lineNo;
-            // The handler will populate the lexeme and token type
+            // Execute the handler (which manages retraction if it's an "others" state)
             return acceptStateMap[nextState](tk.lexeme, nextState);
         }
 
-        // Update line count
+        /* --- STATE TRANSITION LOGIC --- */
+
+        // Update line count on newlines
         if (ch == '\n') lineNo++;
 
-        // Append to lexeme if not a delimiter at start state
-        if (!(currentState == 1 && input == DELIM)) {
+        // Append to lexeme only if we aren't just skipping delimiters at the start
+        if (!(currentState == 1 && input == DELIM) && !(currentState == 1 && input == NEWLINE)) {
             if (lp < MAX_LEXEME_LEN - 1) {
                 tk.lexeme[lp++] = ch;
                 tk.lexeme[lp] = '\0';
             }
         } else {
-            // Stay in state 1 and move lexemeBegin forward
+            // If we are in state 1 and see whitespace, keep lexemeBegin aligned with forward
             tb->lexemeBegin = tb->forward;
         }
 
         currentState = nextState;
     }
 }
-
 void initializeAcceptStateMap() {
     // Initialization of all entries to NULL is already handled by { NULL }
     

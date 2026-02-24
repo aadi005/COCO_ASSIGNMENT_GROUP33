@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #define MAX_LEXEME_LEN 30
-#define MAX_STATES 65
+#define MAX_STATES 66
 #define BUFFER_SIZE 50
 
 typedef enum {
@@ -143,7 +143,7 @@ typedef tokenInfo (*StateHandler)(char* lexeme, int state);
 /* External declarations for the transition matrix and the accept state map.
    These must be defined in your .c files.
 */
-extern int transitionMatrix[MAX_STATES][INPUT_COUNT];
+extern int transitionMatrix[67][30];
 extern StateHandler acceptStateMap[MAX_STATES];
 
 #endif
