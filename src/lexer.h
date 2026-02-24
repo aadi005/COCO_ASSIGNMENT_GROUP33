@@ -34,5 +34,7 @@ void addCharToLexeme(char *lexeme, char c);
 /* Prints token (for Option 2 in driver) */
 void printToken(tokenInfo tk);
 
+void initializeAcceptStateMap() ;
+
 
 #endif
