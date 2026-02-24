@@ -1,17 +1,18 @@
-const int MAX_STATES = 64;
+const int MAX_STATES = 65;
 
 typedef enum {
     DIGIT,          // 0-9
     DIGIT1,         // 2-7 
     ALPHA,          // a-b 
     ALPHA1,         // b-d
-    wALPHA2,         // e-z 
+    ALPHA2,         // e-z 
     ALPHABET,       // a-z, A-Z 
     DELIM,          // Space/Blank 
     NEWLINE,        // \n 
     EOF_TYPE,       // End of file 
     LESS_THAN,      // <
     GREATER_THAN,   // > 
+    EQUAL,          // =
     ZERO,           // 0
     MINUS,          // -
     DOT,            // . 
@@ -19,8 +20,8 @@ typedef enum {
     COMMA,          // , 
     AT_SYMBOL,      // @ 
     HASH,           // # 
-    PERCENT,        // % 
-    EQUAL,          // =
+    PERCENT,        // %
+    PLUS,           // + 
     FORWARD_SLASH,  // / 
     ASTERISK,       // * 
     EXCLAMATION,    // ! 
