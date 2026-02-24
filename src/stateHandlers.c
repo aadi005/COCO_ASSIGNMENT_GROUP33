@@ -47,13 +47,22 @@ tokenInfo handle_TK_ID(char* lexeme, int state) {
 
 tokenInfo handle_TK_FUNID(char* lexeme, int state) {
     tokenInfo tk;
-    // Check specifically for TK_MAIN
+    /* if the lexeme happens to be a reserved word we should honour that
+       rather than blindly classifying it as a function identifier.  the
+       special case for _main remains. */
     if (strcmp(lexeme, "_main") == 0) {
         tk.token = TK_MAIN;
     } else {
-        tk.token = TK_FUNID;
+        TokenName kbd = checkKeyword(lexeme);
+        if (kbd != TK_ID) {
+            tk.token = kbd;      // treat keyword appropriately
+        } else {
+            tk.token = TK_FUNID;
+        }
     }
     strcpy(tk.lexeme, lexeme);
+    /* line number will be filled by the caller (getNextToken) */
+    tk.lineNo = 0;
     return tk;
 }
 
