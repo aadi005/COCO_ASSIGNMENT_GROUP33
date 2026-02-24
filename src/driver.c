@@ -7,12 +7,55 @@
 /* Parser will be added later */
 //#include "parser.h"   /* Leave this include for later implementation */
 
+/* Define the global matrix declared as extern in lexerDef.h */
+int transitionMatrix[MAX_STATES][INPUT_COUNT];
+
+/* ==========================================================
+   TRANSITION TABLE LOADER
+   Reads transitionTable.xlsx - Sheet1.csv into transitionMatrix
+   ========================================================== */
+
+void loadTransitionMatrix(const char *csvFile) {
+    FILE *fp = fopen(csvFile, "r");
+    if (!fp) {
+        printf("Error: Could not open transition table file %s\n", csvFile);
+        exit(1);
+    }
+
+    char line[1024];
+    // Skip the header line
+    if (!fgets(line, sizeof(line), fp)) {
+        fclose(fp);
+        return;
+    }
+
+    int row = 0;
+    while (fgets(line, sizeof(line), fp) && row < MAX_STATES) {
+        // Use strtok to parse the CSV line
+        char *token = strtok(line, ","); // This is the "State" column (index)
+        
+        int col = 0;
+        while ((token = strtok(NULL, ",")) != NULL && col < INPUT_COUNT) {
+            // Convert token to integer; handle empty/NaN values as 65 (sink state)
+            if (strlen(token) == 0 || strcmp(token, "\n") == 0 || strcmp(token, "\r\n") == 0) {
+                transitionMatrix[row + 1][col] = 65; 
+            } else {
+                transitionMatrix[row + 1][col] = atoi(token);
+            }
+            col++;
+        }
+        row++;
+    }
+
+    fclose(fp);
+    printf("Transition Matrix loaded successfully from %s.\n", csvFile);
+}
+
 /* ===========================
    STATUS DISPLAY FUNCTION
    =========================== */
 
 void printImplementationStatus() {
-
     printf("=============================================\n");
     printf("Compiler Construction Project - Status\n");
     printf("=============================================\n");
@@ -41,12 +84,17 @@ int main(int argc, char *argv[]) {
     char *sourceFile = argv[1];
     char *parseTreeOutFile = argv[2];
 
+    /* Load the Transition Table from your CSV file */
+    loadTransitionMatrix("transitionTable.xlsx - Sheet1.csv");
+
+    /* Initialize the accept state map (defined in lexer.c) */
+    initializeAcceptStateMap();
+
     int option;
 
     printImplementationStatus();
 
     while (1) {
-
         printf("\n=========== MENU ===========\n");
         printf("0 : Exit\n");
         printf("1 : Remove comments\n");
@@ -64,21 +112,12 @@ int main(int argc, char *argv[]) {
         }
 
         switch (option) {
-
-            /* ========================================= */
-            /* OPTION 1 - REMOVE COMMENTS                */
-            /* ========================================= */
-
             case 1: {
                 printf("\nRemoving comments...\n");
                 removeComments(sourceFile, "cleaned_output.txt");
                 printf("Comment-free code printed to console.\n");
                 break;
             }
-
-            /* ========================================= */
-            /* OPTION 2 - PRINT TOKEN LIST               */
-            /* ========================================= */
 
             case 2: {
                 printf("\nPerforming Lexical Analysis...\n");
@@ -96,12 +135,9 @@ int main(int argc, char *argv[]) {
                 printf("------------------------------------------------------------\n");
 
                 while (1) {
-
                     tk = getNextToken(tb);
-
                     if (tk.token == TK_EOF)
                         break;
-
                     printToken(tk);
                 }
 
@@ -109,33 +145,19 @@ int main(int argc, char *argv[]) {
                 break;
             }
 
-            /* ========================================= */
-            /* OPTION 3 - PARSER (PLACEHOLDER)           */
-            /* ========================================= */
-
             case 3: {
                 printf("\nParser module not implemented yet.\n");
-                printf("This option will:\n");
-                printf("- Invoke lexer\n");
-                printf("- Build parse tree\n");
-                printf("- Print errors\n");
-                printf("- Output parse tree to file: %s\n", parseTreeOutFile);
                 break;
             }
-
-            /* ========================================= */
-            /* OPTION 4 - TIME MEASUREMENT               */
-            /* ========================================= */
 
             case 4: {
                 printf("\nMeasuring execution time (Lexer + Parser)...\n");
 
                 clock_t start_time, end_time;
-                double total_CPU_time, total_CPU_time_in_seconds;
+                double total_CPU_time_in_seconds;
 
                 start_time = clock();
 
-                /* Lexer invocation */
                 FILE *fp = fopen(sourceFile, "r");
                 if (!fp) {
                     printf("Error opening source file.\n");
@@ -150,19 +172,12 @@ int main(int argc, char *argv[]) {
                     if (tk.token == TK_EOF)
                         break;
                 }
-
                 fclose(fp);
 
-                /* Parser will be invoked here later */
-
                 end_time = clock();
+                total_CPU_time_in_seconds = (double)(end_time - start_time) / CLOCKS_PER_SEC;
 
-                total_CPU_time = (double)(end_time - start_time);
-                total_CPU_time_in_seconds = total_CPU_time / CLOCKS_PER_SEC;
-
-                printf("Total CPU Time (ticks): %lf\n", total_CPU_time);
                 printf("Total CPU Time (seconds): %lf\n", total_CPU_time_in_seconds);
-
                 break;
             }
 
