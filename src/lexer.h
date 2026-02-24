@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include "lexerDef.h"
-#include "stateHandlers.h"
 
 /* Initializes the twin buffer and prepares input stream */
 twinBuffer* initializeLexer(FILE *fp);
