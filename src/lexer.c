@@ -126,7 +126,6 @@ tokenInfo getNextToken(twinBuffer *tb) {
 
     while (1) {
         ch = getNextChar(tb);
-
         /* --- EOF HANDLING ---
            Instead of returning immediately when EOF is encountered we defer the
            decision.  This allows a token that ended exactly at end-of-file to be
@@ -146,23 +145,8 @@ tokenInfo getNextToken(twinBuffer *tb) {
             return tk;
         }
 
-        /* --- DIRECT BRACKET HANDLING ---
-           The DFA defined in the transition matrix did not previously support
-           square brackets because the InputType enum lacked corresponding
-           entries.  For simplicity we treat them as single-character tokens
-           here before invoking the main DFA. */
-        if (ch == '[') {
-            tk.token = TK_SQL;
-            strcpy(tk.lexeme, "[");
-            tk.lineNo = lineNo;
-            return tk;
-        }
-        if (ch == ']') {
-            tk.token = TK_SQR;
-            strcpy(tk.lexeme, "]");
-            tk.lineNo = lineNo;
-            return tk;
-        }
+        
+        
 
         /* --- UNDERSCORE / FUNID HANDLING ---
            Function identifiers and other names start with an underscore.  Instead
@@ -285,7 +269,6 @@ tokenInfo getNextToken(twinBuffer *tb) {
            anyway. */
         if (currentState == 1 && (input == DELIM || input == NEWLINE)) {
             // Skip leading whitespace in state 1
-            if (input == NEWLINE) lineNo++;
             tb->lexemeBegin = tb->forward;
             continue;
         }
@@ -442,7 +425,8 @@ void printToken(tokenInfo tk) {
         name = tokenNames[tk.token];
     }
 
-    printf("%-20s %-20s %-10d\n", tk.lexeme, name, tk.lineNo);
+    /* Print in requested format: "Line no. N\t Lexeme <lexeme>\t Token <TOKEN>" */
+    printf("Line no. %d\t Lexeme %s\t Token %s\n", tk.lineNo, tk.lexeme, name);
 }
 
 TokenName checkKeyword(char *lexeme) {
