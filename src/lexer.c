@@ -249,26 +249,6 @@ tokenInfo getNextToken(twinBuffer *tb) {
         }
 
         /* --- ERRATA HANDLING --- */
-
-        // 1. Lexical Errata: <- should be reported as error
-        if (currentState == 2 && ch == '-') {
-            tk.token = TK_ERROR;
-            strcpy(tk.lexeme, "<-");
-            tk.lineNo = lineNo;
-            return tk;
-        }
-
-        // 2. Lexical Errata: 23.abc handling (Split TK_NUM, TK_DOT, TK_FIELDID)
-        // If we are in the integer state (52) and see a DOT, we accept the integer.
-        if (currentState == 52 && input == DOT) {
-            retract(tb); // Put the DOT back for the next getNextToken call
-            tk.token = TK_NUM;
-            tk.lexeme[lp] = '\0';
-            tk.lineNo = lineNo;
-            tk.val.intValue = atoi(tk.lexeme); 
-            return tk;
-        }
-
         /* --- ACCEPT / RETRACTION LOGIC --- */
         /* We always look up the state info structure, even for non-final
            states.  The "retract" flag is used by both the accept check and
@@ -277,12 +257,12 @@ tokenInfo getNextToken(twinBuffer *tb) {
 
         /* Update line count on newlines before we consider appending the
            character; this mirrors the behaviour of the previous implementation. */
-        if (ch == '\n') lineNo++;
 
         if (nextInfo.isFinal) {
             if (nextInfo.retract) {
                 /* consume nothing when the accept state is reached via an
                    "other" transition. */
+                
                 retract(tb);
             } else {
                 if (lp < MAX_LEXEME_LEN - 1) {
@@ -297,7 +277,7 @@ tokenInfo getNextToken(twinBuffer *tb) {
             result.lineNo = lineNo;
             return result;
         }
-
+        if (ch == '\n') lineNo++;
         /* --- DELIMITER / NEWLINE HANDLING ---
            When in state 1, skip all leading whitespace (delimiters & newlines).
            When NOT in state 1 and a delimiter appears, treat it as end-of-token
@@ -451,7 +431,7 @@ void printToken(tokenInfo tk) {
         "TK_ENDIF", "TK_READ", "TK_WRITE", "TK_RETURN", "TK_CALL",
         "TK_RECORD", "TK_ENDRECORD", "TK_ELSE", "TK_ASSIGNOP", "TK_PLUS",
         "TK_MINUS", "TK_MUL", "TK_DIV", "TK_AND", "TK_OR", "TK_NOT",
-        "TK_LT", "TK_LE", "TK_EQ", "TK_GT", "TK_GE", "TK_NE",
+        "TK_LT", "TK_LE", "TK_EQ", "TK_GT", "TK_GE", "TK_NE", "TOK",
         "TK_SQL", "TK_SQR", "TK_OP", "TK_CL", "TK_COMMA", "TK_SEM",
         "TK_COLON", "TK_DOT", "TK_ID", "TK_FUNID", "TK_FIELDID",
         "TK_RUID", "TK_NUM", "TK_RNUM", "TK_EOF", "TK_ERROR"
