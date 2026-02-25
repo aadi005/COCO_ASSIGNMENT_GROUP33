@@ -100,6 +100,13 @@ tokenInfo handle_TK_PLUS(char* lexeme) {
     return tk;
 }
 
+tokenInfo handle_NOT(char* lexeme) {
+    tokenInfo tk;
+    tk.token = TK_NOT;
+    strcpy(tk.lexeme, lexeme);
+    return tk;
+}
+
 tokenInfo handle_TK_MINUS(char* lexeme) {
     tokenInfo tk;
     tk.token = TK_MINUS;
@@ -158,4 +165,35 @@ tokenInfo handle_TK_COMMA(char* lexeme) {
 }
 tokenInfo handle_TK_COLON(char* lexeme) { 
     tokenInfo tk; tk.token = TK_COLON; strcpy(tk.lexeme, lexeme); return tk; 
+}
+
+/* comparison / logical operator handlers */
+tokenInfo handle_TK_EQ(char* lexeme) { tokenInfo tk; tk.token = TK_EQ; strcpy(tk.lexeme, lexeme); return tk; }
+tokenInfo handle_TK_GE(char* lexeme) { tokenInfo tk; tk.token = TK_GE; strcpy(tk.lexeme, lexeme); return tk; }
+tokenInfo handle_TK_GT(char* lexeme) { tokenInfo tk; tk.token = TK_GT; strcpy(tk.lexeme, lexeme); return tk; }
+tokenInfo handle_TK_NE(char* lexeme) { tokenInfo tk; tk.token = TK_NE; strcpy(tk.lexeme, lexeme); return tk; }
+tokenInfo handle_TK_OR(char* lexeme) { tokenInfo tk; tk.token = TK_OR; strcpy(tk.lexeme, lexeme); return tk; }
+
+/* custom DFA state 42 handler -- suppress output and clear lexeme */
+tokenInfo handle_state42(char* lexeme) {
+    tokenInfo tk;
+    tk.token = TK_ERROR;   /* placeholder token */
+    tk.lexeme[0] = '\0';  /* ensure lexeme reset */
+    tk.lineNo = 0;
+    return tk;
+}
+
+tokenInfo handle_TK_LE(char* lexeme) { 
+    tokenInfo tk; tk.token = TK_LE; strcpy(tk.lexeme, lexeme); return tk; 
+}
+tokenInfo handle_TK_LT(char* lexeme) { 
+    tokenInfo tk; tk.token = TK_LT; strcpy(tk.lexeme, lexeme); return tk; 
+}
+
+tokenInfo handle_TOK(char* lexeme) { 
+    tokenInfo tk; tk.token = TOK; strcpy(tk.lexeme, lexeme); return tk; 
+}
+
+tokenInfo handle_TK_RUID(char* lexeme) { 
+    tokenInfo tk; tk.token = TK_RUID; strcpy(tk.lexeme, lexeme); return tk; 
 }

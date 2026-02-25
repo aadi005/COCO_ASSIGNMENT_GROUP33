@@ -53,6 +53,7 @@ InputType mapCharToEnum(int ch) {
         case ']': return R_SQR;
         case '_': return UNDERSCORE;
         case '&': return AMPERSAND;
+        case '~': return NOT;
         default: return INPUT_COUNT; 
     }
 }
@@ -365,43 +366,55 @@ void initializeAcceptStateMap() {
         acceptStateMap[i].retract = false;
     }
 
-    /* --- Operator Accept States --- */
     acceptStateMap[5]  = (StateInfo){ .handler = handle_TK_ASSIGNOP, .isFinal = true };
+    acceptStateMap[7]  = (StateInfo){ .handler = handle_TK_LE, .isFinal = true };
+    acceptStateMap[8]  = (StateInfo){ .handler = handle_TK_LT, .isFinal = true , .retract = true };
     acceptStateMap[15] = (StateInfo){ .handler = handle_TK_PLUS,     .isFinal = true };
     acceptStateMap[16] = (StateInfo){ .handler = handle_TK_MINUS,    .isFinal = true };
     acceptStateMap[17] = (StateInfo){ .handler = handle_TK_MUL,      .isFinal = true };
     acceptStateMap[18] = (StateInfo){ .handler = handle_TK_DIV,      .isFinal = true };
     acceptStateMap[37] = (StateInfo){ .handler = handle_TK_AND,      .isFinal = true };
 
-    /* --- Identifier and Keyword Accept States --- */
     acceptStateMap[10] = (StateInfo){ .handler = handle_TK_FUNID,   .isFinal = true, .retract = true };
-    acceptStateMap[14] = (StateInfo){ .handler = handle_TK_ID,      .isFinal = true };
+    acceptStateMap[14] = (StateInfo){ .handler = handle_TK_ID,      .isFinal = true, .retract = true };
     acceptStateMap[48] = (StateInfo){ .handler = handle_TK_ID,      .isFinal = true, .retract = true };
 
-    /* --- Numeric Accept States --- */
-    acceptStateMap[61] = (StateInfo){ .handler = handle_TK_NUM,     .isFinal = true };
+    acceptStateMap[61] = (StateInfo){ .handler = handle_TK_NUM,     .isFinal = true , .retract = true };
     acceptStateMap[62] = (StateInfo){ .handler = handle_TK_RNUM,    .isFinal = true };
 
-    /* --- Delimiter Accept States --- */
     acceptStateMap[22] = (StateInfo){ .handler = handle_TK_SEM,     .isFinal = true };
     acceptStateMap[21] = (StateInfo){ .handler = handle_TK_COMMA,   .isFinal = true };
     acceptStateMap[20] = (StateInfo){ .handler = handle_TK_SQL,     .isFinal = true };
-    acceptStateMap[19] = (StateInfo){ .handler = handle_TK_SQR,     .isFinal = true, .retract = true };
+    acceptStateMap[19] = (StateInfo){ .handler = handle_TK_SQR,     .isFinal = true };
     acceptStateMap[26] = (StateInfo){ .handler = handle_TK_OP,      .isFinal = true };
     acceptStateMap[25] = (StateInfo){ .handler = handle_TK_CL,      .isFinal = true };
     acceptStateMap[23] = (StateInfo){ .handler = handle_TK_COLON,   .isFinal = true };
     acceptStateMap[24] = (StateInfo){ .handler = handle_TK_DOT,     .isFinal = true };
+    acceptStateMap[27] = (StateInfo){ .handler = handle_NOT,     .isFinal = true };
+    acceptStateMap[29] = (StateInfo){ .handler = handle_TK_EQ,     .isFinal = true };
+    acceptStateMap[31] = (StateInfo){ .handler = handle_TK_NE,     .isFinal = true };
+    acceptStateMap[33] = (StateInfo){ .handler = handle_TK_GE,     .isFinal = true };
+    acceptStateMap[34] = (StateInfo){ .handler = handle_TK_GT,     .isFinal = true };
+    acceptStateMap[40] = (StateInfo){ .handler = handle_TK_OR,     .isFinal = true };
+    acceptStateMap[51] = (StateInfo){ .handler = handle_TK_RUID,     .isFinal = true, .retract = true };
+    acceptStateMap[59] = (StateInfo){ .handler = handle_TK_RNUM,     .isFinal = true, .retract = true };
+    acceptStateMap[61] = (StateInfo){ .handler = handle_TK_NUM,     .isFinal = true, .retract = true };
+    acceptStateMap[62] = (StateInfo){ .handler = handle_TK_RNUM,     .isFinal = true, .retract = true };
+    
+    
+    
+    
+    
+
 
     /* --- Special Accept States --- */
+    //acceptStateMap[42] = (StateInfo){ .handler = handle_TK_CUSTOM,     .isFinal = true , .retract = true };
+    //acceptStateMap[43] = (StateInfo){ .handler = handle_TK_NEW,     .isFinal = true };
     acceptStateMap[44] = (StateInfo){ .handler = handle_TK_EOF,     .isFinal = true };
 
+    acceptStateMap[48] = (StateInfo){ .handler = handle_TOK,     .isFinal = true, .retract = true };
+
     /* mark intermediate states that require a single retraction; some of
-       these are already final, but setting the flag again has no ill effect */
-    acceptStateMap[8].retract  = true;
-    acceptStateMap[34].retract = true;
-    acceptStateMap[42].retract = true;
-    acceptStateMap[51].retract = true;
-    acceptStateMap[59].retract = true;
 
     /* Note: State 64 handles comment removal. It typically does not
        return a token but resets the DFA to State 1. */

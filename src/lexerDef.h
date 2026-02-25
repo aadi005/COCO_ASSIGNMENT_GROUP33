@@ -5,7 +5,7 @@
 #include <stdbool.h>  /* for bool */
 
 #define MAX_LEXEME_LEN 30
-#define MAX_STATES 66
+#define MAX_STATES 67
 #define BUFFER_SIZE 50
 
 typedef enum {
@@ -57,6 +57,7 @@ typedef enum {
     TK_GT,
     TK_GE,
     TK_NE,
+    TOK,
 
     // Delimiters
     TK_SQL,          // [
@@ -97,7 +98,6 @@ typedef enum {
     LESS_THAN,      // <
     GREATER_THAN,   // > 
     EQUAL,          // =
-    ZERO,           // 0
     MINUS,          // -
     DOT,            // . 
     SEMICOLON,      // ; 
@@ -117,6 +117,7 @@ typedef enum {
     UNDERSCORE,     // _
     L_SQR,          // [  (left square bracket input type)
     R_SQR,          // ]  (right square bracket input type)
+    NOT,         // ~
     INPUT_COUNT     // Helper to track size
 } InputType;
 
@@ -160,7 +161,7 @@ typedef struct {
 
 /* External declarations for the transition matrix and the accept state map.
    These must be defined in your .c files. */
-extern int transitionMatrix[67][31];
+extern int transitionMatrix[MAX_STATES][INPUT_COUNT];
 extern StateInfo acceptStateMap[MAX_STATES];
 
 #endif
