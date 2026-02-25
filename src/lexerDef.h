@@ -2,6 +2,7 @@
 #define LEXERDEF_H
 
 #include <stdio.h>
+#include <stdbool.h>  /* for bool */
 
 #define MAX_LEXEME_LEN 30
 #define MAX_STATES 66
@@ -141,14 +142,25 @@ typedef struct {
 } twinBuffer;
 
 /* Defining the function pointer type for state handlers.
-   It takes the lexeme and the accept state index, returning a tokenInfo.
+   It takes the lexeme and returns a tokenInfo.
 */
-typedef tokenInfo (*StateHandler)(char* lexeme, int state);
+typedef tokenInfo (*StateHandler)(char* lexeme);
+
+/* Information stored for every DFA state.  The lexer will consult this table
+   on every transition so that it knows whether the state is accepting,
+   whether a retraction should occur and which handler (if any) to invoke.
+   A placeholder "noop" handler is used for non-final states so that the
+   map can be indexed uniformly without null checks. */
+
+typedef struct {
+    StateHandler handler;   /* function invoked when a token is final */
+    bool isFinal;           /* does this state correspond to a token? */
+    bool retract;           /* should we move the input pointer back here? */
+} StateInfo;
 
 /* External declarations for the transition matrix and the accept state map.
-   These must be defined in your .c files.
-*/
-extern int transitionMatrix[67][INPUT_COUNT];
-extern StateHandler acceptStateMap[MAX_STATES];
+   These must be defined in your .c files. */
+extern int transitionMatrix[67][31];
+extern StateInfo acceptStateMap[MAX_STATES];
 
 #endif
