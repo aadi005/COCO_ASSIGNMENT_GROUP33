@@ -310,7 +310,7 @@ void initializeAcceptStateMap() {
        default to false so that a plain lookup can be done without checking
        for NULL. */
     for (int i = 0; i < MAX_STATES; ++i) {
-        acceptStateMap[i].handler = handle_noop;
+        acceptStateMap[i].handler = NULL;
         acceptStateMap[i].isFinal = false;
         acceptStateMap[i].retract = false;
     }
@@ -324,7 +324,7 @@ void initializeAcceptStateMap() {
     acceptStateMap[18] = (StateInfo){ .handler = handle_TK_DIV,      .isFinal = true };
     acceptStateMap[37] = (StateInfo){ .handler = handle_TK_AND,      .isFinal = true };
 
-    acceptStateMap[10] = (StateInfo){ .handler = handle_TK_FUNID,   .isFinal = true, .retract = true };
+    acceptStateMap[10] = (StateInfo){ .handler = handle_TK_FIELDID,   .isFinal = true, .retract = true };
     acceptStateMap[14] = (StateInfo){ .handler = handle_TK_ID,      .isFinal = true, .retract = true };
     acceptStateMap[48] = (StateInfo){ .handler = handle_TK_ID,      .isFinal = true, .retract = true };
 
@@ -359,14 +359,10 @@ void initializeAcceptStateMap() {
     /* --- Special Accept States --- */
     //acceptStateMap[42] = (StateInfo){ .handler = handle_TK_CUSTOM,     .isFinal = true , .retract = true };
     //acceptStateMap[43] = (StateInfo){ .handler = handle_TK_NEW,     .isFinal = true };
-    acceptStateMap[44] = (StateInfo){ .handler = handle_TK_EOF,     .isFinal = true };
 
-    acceptStateMap[48] = (StateInfo){ .handler = handle_TOK,     .isFinal = true, .retract = true };
+    acceptStateMap[48] = (StateInfo){ .handler = handle_TK_FUNID,     .isFinal = true, .retract = true };
 
-    /* mark intermediate states that require a single retraction; some of
-
-    /* Note: State 64 handles comment removal. It typically does not
-       return a token but resets the DFA to State 1. */
+    
 }
 
 void removeComments(char *inputFile, char *outputFile) {
@@ -388,11 +384,10 @@ void removeComments(char *inputFile, char *outputFile) {
     fclose(dest);
 }
 
-void printToken(tokenInfo tk) {
-    /* A full string table matching the TokenName enum order.  If you add new
-       tokens to lexerDef.h make sure to update this array accordingly. */
+void printToken(tokenInfo tk)
+{
     static const char *tokenNames[] = {
-        "TK_COMMENT",          /* added for "%" */
+        "TK_COMMENT",
         "TK_WITH", "TK_PARAMETERS", "TK_END", "TK_WHILE", "TK_UNION",
         "TK_ENDUNION", "TK_DEFINETYPE", "TK_AS", "TK_TYPE", "TK_MAIN",
         "TK_GLOBAL", "TK_PARAMETER", "TK_LIST", "TK_INPUT", "TK_OUTPUT",
@@ -407,14 +402,43 @@ void printToken(tokenInfo tk) {
     };
 
     const char *name = "UNKNOWN";
-    if (tk.token >= 0 && tk.token < (int)(sizeof(tokenNames)/sizeof(tokenNames[0]))) {
+
+    if (tk.token >= 0 && tk.token < (int)(sizeof(tokenNames)/sizeof(tokenNames[0])))
         name = tokenNames[tk.token];
+
+    /* ========================= */
+    /* Handle identifier length  */
+    /* ========================= */
+    if ((tk.token == TK_ID || tk.token == TK_FUNID || tk.token == TK_FIELDID)
+        && strlen(tk.lexeme) > 20)
+    {
+        printf("Line no. %d: Error: Variable Identifier is longer than the prescribed length of 20 characters.\n",
+               tk.lineNo);
+        return;
     }
 
-    /* Print in requested format: "Line no. N\t Lexeme <lexeme>\t Token <TOKEN>" */
-    printf("Line no. %d\t Lexeme %s\t Token %s\n", tk.lineNo, tk.lexeme, name);
-}
+    /* ========================= */
+    /* Handle lexical errors     */
+    /* ========================= */
+    if (tk.token == TK_ERROR)
+    {
+        if (strlen(tk.lexeme)==1){
+            printf("Line no %d: Error: Unknown Symbol <%s>\n",
+                        tk.lineNo, tk.lexeme);
+        }else{
+            printf("Line no %d: Error: Unknown Pattern <%s>\n",
+               tk.lineNo, tk.lexeme);
+        }
+        
+        return;
+    }
 
+    /* ========================= */
+    /* Normal token printing     */
+    /* ========================= */
+    printf("Line no. %d\t Lexeme %s\t Token %s\n",
+           tk.lineNo, tk.lexeme, name);
+}
 TokenName checkKeyword(char *lexeme) {
     if (strcmp(lexeme, "with") == 0) return TK_WITH;
     if (strcmp(lexeme, "parameters") == 0) return TK_PARAMETERS;

@@ -20,9 +20,6 @@ void initializeAcceptStateMap();
    Each function returns a tokenInfo package for the Parser.
    ========================================================== */
 
-// generic utility handler (never used when isFinal is false)
-tokenInfo handle_noop(char* lexeme);
-
 // Identifier and Keyword Handlers
 tokenInfo handle_TK_ID(char* lexeme);
 tokenInfo handle_TK_FUNID(char* lexeme);
@@ -69,11 +66,10 @@ tokenInfo handle_TK_DOT(char* lexeme);
 tokenInfo handle_NOT(char* lexeme);
 tokenInfo handle_TK_LE(char* lexeme);
 tokenInfo handle_TK_LT(char* lexeme);
-tokenInfo handle_TOK(char* lexeme);
 tokenInfo handle_TK_RUID(char* lexeme);
+tokenInfo handle_TK_FIELDID(char* lexeme);
 
 // Special Handlers
-tokenInfo handle_TK_EOF(char* lexeme);
 tokenInfo handle_TK_ERROR(char* lexeme);
 
 #endif

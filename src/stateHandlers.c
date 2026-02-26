@@ -3,18 +3,6 @@
 #include <string.h>
 #include "lexer.h"
 
-/* dummy/no-op handler used to populate the state map for non-final
-   states.  It simply returns an empty error token and is never invoked by
-   the lexer when isFinal is false, but having a real function avoids
-   null-pointer checks elsewhere. */
-tokenInfo handle_noop(char* lexeme) {
-    tokenInfo tk;
-    tk.token = TK_ERROR;
-    tk.lexeme[0] = '\0';
-    tk.lineNo = 0;
-    return tk;
-}
-
 /* Helper to handle the 'others' retraction logic */
 void handleRetraction(twinBuffer *tb) {
     // Retract if the accept state was reached via an 'others' transition 
@@ -174,24 +162,13 @@ tokenInfo handle_TK_GT(char* lexeme) { tokenInfo tk; tk.token = TK_GT; strcpy(tk
 tokenInfo handle_TK_NE(char* lexeme) { tokenInfo tk; tk.token = TK_NE; strcpy(tk.lexeme, lexeme); return tk; }
 tokenInfo handle_TK_OR(char* lexeme) { tokenInfo tk; tk.token = TK_OR; strcpy(tk.lexeme, lexeme); return tk; }
 
-/* custom DFA state 42 handler -- suppress output and clear lexeme */
-tokenInfo handle_state42(char* lexeme) {
-    tokenInfo tk;
-    tk.token = TK_ERROR;   /* placeholder token */
-    tk.lexeme[0] = '\0';  /* ensure lexeme reset */
-    tk.lineNo = 0;
-    return tk;
-}
+
 
 tokenInfo handle_TK_LE(char* lexeme) { 
     tokenInfo tk; tk.token = TK_LE; strcpy(tk.lexeme, lexeme); return tk; 
 }
 tokenInfo handle_TK_LT(char* lexeme) { 
     tokenInfo tk; tk.token = TK_LT; strcpy(tk.lexeme, lexeme); return tk; 
-}
-
-tokenInfo handle_TOK(char* lexeme) { 
-    tokenInfo tk; tk.token = TOK; strcpy(tk.lexeme, lexeme); return tk; 
 }
 
 tokenInfo handle_TK_RUID(char* lexeme) { 
@@ -201,6 +178,20 @@ tokenInfo handle_TK_RUID(char* lexeme) {
 tokenInfo handle_TK_ERROR(char* lexeme) {
     tokenInfo tk;
     tk.token = TK_ERROR;
+    strcpy(tk.lexeme, lexeme);
+    tk.lineNo = 0; // line number will be filled by caller
+    return tk;
+}
+
+tokenInfo handle_TK_FIELDID(char* lexeme) {
+    tokenInfo tk;
+    TokenName kbd = checkKeyword(lexeme);
+    if (kbd != TK_ID) {
+        tk.token = kbd;      // treat keyword appropriately
+    } else {
+        tk.token = TK_FIELDID;
+    }
+
     strcpy(tk.lexeme, lexeme);
     tk.lineNo = 0; // line number will be filled by caller
     return tk;
