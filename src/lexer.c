@@ -152,6 +152,7 @@ tokenInfo getNextToken(twinBuffer *tb) {
            Function identifiers and other names start with an underscore.  Instead
            of letting the DFA drop them into a sink state, handle them explicitly.
            Collect characters until a non-alphanumeric/underscore is seen. */
+        
         if (ch == '_') {
             int lp2 = 0;
             tk.lexeme[lp2++] = '_';
@@ -180,6 +181,7 @@ tokenInfo getNextToken(twinBuffer *tb) {
             }
             return tk;
         }
+        
 
         /* --- COMMENT HANDLING ---
            A percent sign begins a comment; the entire rest of the line is ignored
