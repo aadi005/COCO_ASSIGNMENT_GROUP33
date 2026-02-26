@@ -197,3 +197,11 @@ tokenInfo handle_TOK(char* lexeme) {
 tokenInfo handle_TK_RUID(char* lexeme) { 
     tokenInfo tk; tk.token = TK_RUID; strcpy(tk.lexeme, lexeme); return tk; 
 }
+
+tokenInfo handle_TK_ERROR(char* lexeme) {
+    tokenInfo tk;
+    tk.token = TK_ERROR;
+    strcpy(tk.lexeme, lexeme);
+    tk.lineNo = 0; // line number will be filled by caller
+    return tk;
+}

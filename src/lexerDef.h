@@ -110,7 +110,7 @@ typedef enum {
     ASTERISK,       // * 
     EXCLAMATION,    // ! 
     AMPERSAND,      // &
-    EPSILON,        // epsilon 
+    E,        // epsilon 
     CLOSE_PAREN,    // )
     COLON,          // : 
     OPEN_PAREN,     // (

@@ -60,57 +60,68 @@ InputType mapCharToEnum(int ch) {
 
 twinBuffer* initializeLexer(FILE *fp) {
     twinBuffer *tb = (twinBuffer*)malloc(sizeof(twinBuffer));
+    if (!tb) return NULL;
     tb->fp = fp;
     tb->forward = 0;
     tb->lexemeBegin = 0;
     tb->currentBuffer = 1;
-    
-    // Initial fill of buffer1
+
     memset(tb->buffer1, 0, BUFFER_SIZE);
-    fread(tb->buffer1, 1, BUFFER_SIZE, tb->fp);
+    memset(tb->buffer2, 0, BUFFER_SIZE);
+
+    size_t n = fread(tb->buffer1, 1, BUFFER_SIZE - 1, tb->fp);
+    tb->buffer1[n] = '\0'; // sentinel
     return tb;
 }
 
 void refillBuffer(twinBuffer *tb) {
     if (tb->currentBuffer == 1) {
+        // switching TO buffer2, so fill buffer2
         memset(tb->buffer2, 0, BUFFER_SIZE);
-        fread(tb->buffer2, 1, BUFFER_SIZE, tb->fp);
+        size_t n = fread(tb->buffer2, 1, BUFFER_SIZE - 1, tb->fp);
+        tb->buffer2[n] = '\0'; // sentinel
         tb->currentBuffer = 2;
     } else {
         memset(tb->buffer1, 0, BUFFER_SIZE);
-        fread(tb->buffer1, 1, BUFFER_SIZE, tb->fp);
+        size_t n = fread(tb->buffer1, 1, BUFFER_SIZE - 1, tb->fp);
+        tb->buffer1[n] = '\0'; // sentinel
         tb->currentBuffer = 1;
     }
 }
 
 int getNextChar(twinBuffer *tb) {
-    int ch;
-    if (tb->currentBuffer == 1) {
-        ch = (unsigned char)tb->buffer1[tb->forward];
-    } else {
-        ch = (unsigned char)tb->buffer2[tb->forward];
+    char *buf = (tb->currentBuffer == 1) ? tb->buffer1 : tb->buffer2;
+    int ch = (unsigned char)buf[tb->forward];
+
+    if (ch == '\0') {
+        // hit sentinel — are we truly at EOF?
+        if (feof(tb->fp)) return EOF;
+        // otherwise refill and read first char of new buffer
+        refillBuffer(tb);
+        tb->forward = 0;
+        buf = (tb->currentBuffer == 1) ? tb->buffer1 : tb->buffer2;
+        ch = (unsigned char)buf[tb->forward];
+        if (ch == '\0') return EOF; // new buffer also empty
     }
 
     tb->forward++;
-    if (tb->forward == BUFFER_SIZE) {
-        refillBuffer(tb);
-        tb->forward = 0;
-    }
-    /* If we've read past the end of actual input the buffer will contain
-       zeroes (we memset when we refill). Treat a null character as EOF so
-       that the DFA can terminate cleanly. */
-    if (ch == '\0')
-        return EOF;
     return ch;
 }
 
 void retract(twinBuffer *tb) {
-    tb->forward--;
-    if (tb->forward < 0) {
-        tb->forward = BUFFER_SIZE - 1;
+    if (tb->forward == 0) {
+        // switch back to the other buffer, last valid char
         tb->currentBuffer = (tb->currentBuffer == 1) ? 2 : 1;
+        tb->forward = BUFFER_SIZE - 1;
+        // walk back past the sentinel to the last real character
+        char *buf = (tb->currentBuffer == 1) ? tb->buffer1 : tb->buffer2;
+        while (tb->forward > 0 && buf[tb->forward] == '\0')
+            tb->forward--;
+    } else {
+        tb->forward--;
     }
 }
+
 
 tokenInfo getNextToken(twinBuffer *tb) {
     int currentState = 1;
@@ -152,35 +163,7 @@ tokenInfo getNextToken(twinBuffer *tb) {
            Function identifiers and other names start with an underscore.  Instead
            of letting the DFA drop them into a sink state, handle them explicitly.
            Collect characters until a non-alphanumeric/underscore is seen. */
-        
-        if (ch == '_') {
-            int lp2 = 0;
-            tk.lexeme[lp2++] = '_';
-            tk.lexeme[lp2] = '\0';
-            while (1) {
-                int nxt = getNextChar(tb);
-                if (nxt == EOF) break;
-                if (isalnum(nxt) || nxt == '_') {
-                    if (lp2 < MAX_LEXEME_LEN - 1) {
-                        tk.lexeme[lp2++] = nxt;
-                        tk.lexeme[lp2] = '\0';
-                    }
-                    continue;
-                }
-                /* push the non-matching character back so it can be processed by
-                   the normal DFA on the next call */
-                retract(tb);
-                break;
-            }
-            tk.lineNo = lineNo;
-            /* special case: ``_main'' is reserved */
-            if (strcmp(tk.lexeme, "_main") == 0) {
-                tk.token = TK_MAIN;
-            } else {
-                tk.token = TK_FUNID;
-            }
-            return tk;
-        }
+
         
 
         /* --- COMMENT HANDLING ---
@@ -211,6 +194,17 @@ tokenInfo getNextToken(twinBuffer *tb) {
         if (!(currentState==11 || currentState==12 || currentState==13) && (input==DIGIT1) ){
             input = DIGIT;
         }
+
+        if ((currentState==45 || currentState==46) && (input==ALPHA)){
+            input = ALPHABET;
+        }
+
+
+        if (currentState==55 && ch=='E'){
+            input = E;
+        }
+
+
         if (input == INPUT_COUNT) {
             tk.token = TK_ERROR;
             tk.lexeme[0] = ch;
@@ -223,17 +217,7 @@ tokenInfo getNextToken(twinBuffer *tb) {
 
         /* --- SINK STATE / ERROR HANDLING --- */
         // If the DFA hits state 65, it's a lexical error. 
-        // We stop here to prevent an infinite loop.
-        if (nextState == 65) {
-            tk.token = TK_ERROR;
-            if (lp < MAX_LEXEME_LEN - 1) {
-                tk.lexeme[lp++] = ch;
-                tk.lexeme[lp] = '\0';
-            }
-            tk.lineNo = lineNo;
-            return tk;
-        }
-
+        // We stop here to prevent an infinite loop
         /* --- ERRATA HANDLING --- */
         /* --- ACCEPT / RETRACTION LOGIC --- */
         /* We always look up the state info structure, even for non-final
@@ -364,7 +348,7 @@ void initializeAcceptStateMap() {
     acceptStateMap[51] = (StateInfo){ .handler = handle_TK_RUID,     .isFinal = true, .retract = true };
     acceptStateMap[59] = (StateInfo){ .handler = handle_TK_RNUM,     .isFinal = true, .retract = true };
     acceptStateMap[61] = (StateInfo){ .handler = handle_TK_NUM,     .isFinal = true, .retract = true };
-    acceptStateMap[62] = (StateInfo){ .handler = handle_TK_RNUM,     .isFinal = true, .retract = true };
+    acceptStateMap[65] = (StateInfo){ .handler = handle_TK_ERROR,     .isFinal = true, .retract = true };
     
     
     

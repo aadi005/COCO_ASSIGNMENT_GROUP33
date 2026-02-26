@@ -74,6 +74,6 @@ tokenInfo handle_TK_RUID(char* lexeme);
 
 // Special Handlers
 tokenInfo handle_TK_EOF(char* lexeme);
-tokenInfo handle_TK_ERROR(char* lexeme, int state);
+tokenInfo handle_TK_ERROR(char* lexeme);
 
 #endif
