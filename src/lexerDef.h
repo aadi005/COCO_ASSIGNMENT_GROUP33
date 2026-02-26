@@ -81,7 +81,8 @@ typedef enum {
 
     // Special
     TK_EOF,
-    TK_ERROR
+    TK_ERROR,
+    TK_LENGTH_ERROR
 
 } TokenName;
 

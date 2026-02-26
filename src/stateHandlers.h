@@ -3,6 +3,7 @@
 
 #include "lexerDef.h"
 
+
 /**
  * Global map linking DFA states to their handler functions and
  * associated metadata (final/retract).  Declared here for access across

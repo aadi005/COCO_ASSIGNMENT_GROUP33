@@ -4,12 +4,14 @@
 #include "lexer.h"
 #include "lexerDef.h"
 #include "stateHandlers.h"
-#include <ctype.h>   // for isalnum, isalpha, etc
-#include <stdbool.h>  // for bool
+#include <ctype.h>   
+#include <stdbool.h>  
 
 /* Definition of the global accept state map.  Every entry is initialised
    to a dummy handler with isFinal=false and retract=false so that the
    lexer can index it without having to check for NULL pointers. */
+
+
 StateInfo acceptStateMap[MAX_STATES] = { {NULL, false, false} };
 
 /* Helper to map characters to the transition matrix columns based on CSV header */
@@ -409,8 +411,7 @@ void printToken(tokenInfo tk)
     /* ========================= */
     /* Handle identifier length  */
     /* ========================= */
-    if ((tk.token == TK_ID || tk.token == TK_FUNID || tk.token == TK_FIELDID)
-        && strlen(tk.lexeme) > 20)
+    if (tk.token == TK_LENGTH_ERROR)
     {
         printf("Line no. %d: Error: Variable Identifier is longer than the prescribed length of 20 characters.\n",
                tk.lineNo);

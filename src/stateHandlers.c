@@ -41,6 +41,9 @@ tokenInfo handle_TK_ID(char* lexeme) {
     // Check if the lexeme is a reserved keyword
     TokenName kbd = checkKeyword(lexeme); 
     tk.token = kbd;
+    if (kbd == TK_ID && strlen(lexeme) > 20) {
+        tk.token = TK_LENGTH_ERROR;
+    }
     strcpy(tk.lexeme, lexeme);
     return tk;
 }
@@ -120,13 +123,6 @@ tokenInfo handle_TK_SEM(char* lexeme) {
    SPECIAL HANDLERS
    ========================================================== */
 
-tokenInfo handle_TK_EOF(char* lexeme) {
-    tokenInfo tk;
-    tk.token = TK_EOF;
-    strcpy(tk.lexeme, "EOF");
-    return tk;
-}
-
 tokenInfo handle_TK_AND(char* lexeme) { 
     tokenInfo tk; tk.token = TK_AND; strcpy(tk.lexeme, lexeme); return tk; 
 }
@@ -190,6 +186,10 @@ tokenInfo handle_TK_FIELDID(char* lexeme) {
         tk.token = kbd;      // treat keyword appropriately
     } else {
         tk.token = TK_FIELDID;
+        if (strlen(lexeme) > 20) {
+            // Truncate the lexeme if it exceeds the maximum length
+            tk.token = TK_LENGTH_ERROR;
+        }
     }
 
     strcpy(tk.lexeme, lexeme);
