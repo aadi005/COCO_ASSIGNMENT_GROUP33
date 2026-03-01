@@ -87,7 +87,7 @@ void initGrammar(void) {
     grammar[r] = (Production){NT_OTHERFUNCTIONS, {NT(NT_FUNCTION), NT(NT_OTHERFUNCTIONS)}, 2, r}; r++;
 
     /* 3: otherFunctions → eps */
-    grammar[r] = (Production){NT_OTHERFUNCTIONS, {}, 0, r}; r++;
+    grammar[r] = (Production){NT_OTHERFUNCTIONS, {0}, 0, r}; r++;
 
     /* 4: function → TK_FUNID input_par output_par TK_SEM stmts TK_END */
     grammar[r] = (Production){NT_FUNCTION,
@@ -105,7 +105,7 @@ void initGrammar(void) {
         6, r}; r++;
 
     /* 7: output_par → eps */
-    grammar[r] = (Production){NT_OUTPUT_PAR, {}, 0, r}; r++;
+    grammar[r] = (Production){NT_OUTPUT_PAR, {0}, 0, r}; r++;
 
     /* 8: parameter_list → dataType TK_ID remaining_list */
     grammar[r] = (Production){NT_PARAMETER_LIST,
@@ -136,7 +136,7 @@ void initGrammar(void) {
     grammar[r] = (Production){NT_REMAINING_LIST, {T(TK_COMMA), NT(NT_PARAMETER_LIST)}, 2, r}; r++;
 
     /* 17: remaining_list → eps */
-    grammar[r] = (Production){NT_REMAINING_LIST, {}, 0, r}; r++;
+    grammar[r] = (Production){NT_REMAINING_LIST, {0}, 0, r}; r++;
 
     /* 18: stmts → typeDefinitions declarations otherStmts returnStmt */
     grammar[r] = (Production){NT_STMTS,
@@ -148,7 +148,7 @@ void initGrammar(void) {
         {NT(NT_ACTUAL_OR_REDEFINED), NT(NT_TYPE_DEFINITIONS)}, 2, r}; r++;
 
     /* 20: typeDefinitions → eps */
-    grammar[r] = (Production){NT_TYPE_DEFINITIONS, {}, 0, r}; r++;
+    grammar[r] = (Production){NT_TYPE_DEFINITIONS, {0}, 0, r}; r++;
 
     /* 21: actualOrRedefined → typeDefinition */
     grammar[r] = (Production){NT_ACTUAL_OR_REDEFINED, {NT(NT_TYPE_DEFINITION)}, 1, r}; r++;
@@ -183,14 +183,14 @@ void initGrammar(void) {
         {NT(NT_FIELD_DEFINITION), NT(NT_MORE_FIELDS)}, 2, r}; r++;
 
     /* 30: moreFields → eps */
-    grammar[r] = (Production){NT_MORE_FIELDS, {}, 0, r}; r++;
+    grammar[r] = (Production){NT_MORE_FIELDS, {0}, 0, r}; r++;
 
     /* 31: declarations → declaration declarations */
     grammar[r] = (Production){NT_DECLARATIONS,
         {NT(NT_DECLARATION), NT(NT_DECLARATIONS)}, 2, r}; r++;
 
     /* 32: declarations → eps */
-    grammar[r] = (Production){NT_DECLARATIONS, {}, 0, r}; r++;
+    grammar[r] = (Production){NT_DECLARATIONS, {0}, 0, r}; r++;
 
     /* 33: declaration → TK_TYPE dataType TK_COLON TK_ID global_or_not TK_SEM */
     grammar[r] = (Production){NT_DECLARATION,
@@ -201,13 +201,13 @@ void initGrammar(void) {
     grammar[r] = (Production){NT_GLOBAL_OR_NOT, {T(TK_COLON), T(TK_GLOBAL)}, 2, r}; r++;
 
     /* 35: global_or_not → eps */
-    grammar[r] = (Production){NT_GLOBAL_OR_NOT, {}, 0, r}; r++;
+    grammar[r] = (Production){NT_GLOBAL_OR_NOT, {0}, 0, r}; r++;
 
     /* 36: otherStmts → stmt otherStmts */
     grammar[r] = (Production){NT_OTHER_STMTS, {NT(NT_STMT), NT(NT_OTHER_STMTS)}, 2, r}; r++;
 
     /* 37: otherStmts → eps */
-    grammar[r] = (Production){NT_OTHER_STMTS, {}, 0, r}; r++;
+    grammar[r] = (Production){NT_OTHER_STMTS, {0}, 0, r}; r++;
 
     /* 38-42: stmt alternatives */
     grammar[r] = (Production){NT_STMT, {NT(NT_ASSIGNMENT_STMT)}, 1, r}; r++;  /* 38 */
@@ -225,7 +225,7 @@ void initGrammar(void) {
         {T(TK_ID), NT(NT_OPTION_SINGLE_CONSTR)}, 2, r}; r++;
 
     /* 45: optionSingleConstructed → eps */
-    grammar[r] = (Production){NT_OPTION_SINGLE_CONSTR, {}, 0, r}; r++;
+    grammar[r] = (Production){NT_OPTION_SINGLE_CONSTR, {0}, 0, r}; r++;
 
     /* 46: optionSingleConstructed → oneExpansion moreExpansions */
     grammar[r] = (Production){NT_OPTION_SINGLE_CONSTR,
@@ -239,7 +239,7 @@ void initGrammar(void) {
         {NT(NT_ONE_EXPANSION), NT(NT_MORE_EXPANSIONS)}, 2, r}; r++;
 
     /* 49: moreExpansions → eps */
-    grammar[r] = (Production){NT_MORE_EXPANSIONS, {}, 0, r}; r++;
+    grammar[r] = (Production){NT_MORE_EXPANSIONS, {0}, 0, r}; r++;
 
     /* 50: funCallStmt → outputParameters TK_CALL TK_FUNID TK_WITH TK_PARAMETERS inputParameters TK_SEM */
     grammar[r] = (Production){NT_FUN_CALL_STMT,
@@ -251,7 +251,7 @@ void initGrammar(void) {
         {T(TK_SQL), NT(NT_ID_LIST), T(TK_SQR), T(TK_ASSIGNOP)}, 4, r}; r++;
 
     /* 52: outputParameters → eps */
-    grammar[r] = (Production){NT_OUTPUT_PARAMETERS, {}, 0, r}; r++;
+    grammar[r] = (Production){NT_OUTPUT_PARAMETERS, {0}, 0, r}; r++;
 
     /* 53: inputParameters → TK_SQL idList TK_SQR */
     grammar[r] = (Production){NT_INPUT_PARAMETERS,
@@ -290,7 +290,7 @@ void initGrammar(void) {
         {NT(NT_LOW_PREC_OP), NT(NT_TERM), NT(NT_EXP_PRIME)}, 3, r}; r++;
 
     /* 62: expPrime → eps */
-    grammar[r] = (Production){NT_EXP_PRIME, {}, 0, r}; r++;
+    grammar[r] = (Production){NT_EXP_PRIME, {0}, 0, r}; r++;
 
     /* 63: term → factor termPrime */
     grammar[r] = (Production){NT_TERM, {NT(NT_FACTOR), NT(NT_TERM_PRIME)}, 2, r}; r++;
@@ -300,7 +300,7 @@ void initGrammar(void) {
         {NT(NT_HIGH_PREC_OP), NT(NT_FACTOR), NT(NT_TERM_PRIME)}, 3, r}; r++;
 
     /* 65: termPrime → eps */
-    grammar[r] = (Production){NT_TERM_PRIME, {}, 0, r}; r++;
+    grammar[r] = (Production){NT_TERM_PRIME, {0}, 0, r}; r++;
 
     /* 66: factor → TK_OP arithmeticExpression TK_CL */
     grammar[r] = (Production){NT_FACTOR,
@@ -360,7 +360,7 @@ void initGrammar(void) {
         {T(TK_SQL), NT(NT_ID_LIST), T(TK_SQR)}, 3, r}; r++;
 
     /* 88: optionalReturn → eps */
-    grammar[r] = (Production){NT_OPTIONAL_RETURN, {}, 0, r}; r++;
+    grammar[r] = (Production){NT_OPTIONAL_RETURN, {0}, 0, r}; r++;
 
     /* 89: idList → TK_ID moreIds */
     grammar[r] = (Production){NT_ID_LIST, {T(TK_ID), NT(NT_MORE_IDS)}, 2, r}; r++;
@@ -369,7 +369,7 @@ void initGrammar(void) {
     grammar[r] = (Production){NT_MORE_IDS, {T(TK_COMMA), NT(NT_ID_LIST)}, 2, r}; r++;
 
     /* 91: moreIds → eps */
-    grammar[r] = (Production){NT_MORE_IDS, {}, 0, r}; r++;
+    grammar[r] = (Production){NT_MORE_IDS, {0}, 0, r}; r++;
 
     /* 92: definetypeStmt → TK_DEFINETYPE A TK_RUID TK_AS TK_RUID */
     grammar[r] = (Production){NT_DEFINETYPE_STMT,
@@ -653,7 +653,8 @@ ParseTreeNode *parseInputSourceCode(char *testcaseFile, ParseTableType table) {
         return NULL;
     }
 
-    initializeAcceptStateMap();
+    /* Note: initializeAcceptStateMap() is now called once in main() before
+       parsing any files.  Removed redundant call here for efficiency. */
     twinBuffer *tb = initializeLexer(fp);
 
     /* ---- Build parse tree root ---- */
@@ -758,7 +759,9 @@ ParseTreeNode *parseInputSourceCode(char *testcaseFile, ParseTableType table) {
 
         if (prod->rhsLen == 0) {
             /* Epsilon production: create an epsilon leaf child */
-            GrammarSymbol epsSym = {SYM_EPSILON, {.terminal = 0}};
+            GrammarSymbol epsSym;
+            epsSym.type = SYM_EPSILON;
+            epsSym.terminal = 0;
             ParseTreeNode *epsNode = createParseTreeNode(epsSym, ntNode);
             epsNode->isLeaf = true;
             if (ntNode) addChild(ntNode, epsNode);
@@ -807,6 +810,29 @@ static const char *symName(GrammarSymbol sym) {
 static const char *parentSymName(ParseTreeNode *node) {
     if (!node->parent) return "ROOT";
     return symName(node->parent->symbol);
+}
+
+/* ==========================================================
+   PARSE TREE MEMORY MANAGEMENT
+   ========================================================== */
+/* Frees all nodes in the parse tree rooted at node and below */
+static void freeParseTreeNodes(ParseTreeNode *node) {
+    if (!node) return;
+    
+    /* Recursively free all children */
+    ParseTreeNode *child = node->firstChild;
+    while (child) {
+        ParseTreeNode *nextSib = child->nextSibling;
+        freeParseTreeNodes(child);
+        child = nextSib;
+    }
+    
+    free(node);
+}
+
+/* Public interface to free entire parse tree */
+void freeParseTree(ParseTreeNode *root) {
+    freeParseTreeNodes(root);
 }
 
 static void printNode(ParseTreeNode *node, FILE *fp) {

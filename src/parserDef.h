@@ -153,7 +153,7 @@ typedef struct StackElem {
     ParseTreeNode  *treeNode;
     struct StackElem *next;
 } StackElem;
-
+//SUGGESTION 2 : there is no need for size of stack, also where is the stack array thing?
 typedef struct {
     StackElem *top;
     int        size;

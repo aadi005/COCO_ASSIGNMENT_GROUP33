@@ -125,6 +125,7 @@ int main(int argc, char *argv[]) {
                 parseInputSourceCode(sourceFile, parseTable);
             if (tree) {
                 printParseTree(tree, parseTreeFile);
+                freeParseTree(tree);   /* free parse tree memory */
             }
             break;
         }
@@ -153,7 +154,6 @@ int main(int argc, char *argv[]) {
             /* Run parser */
             ParseTreeNode *tree =
                 parseInputSourceCode(sourceFile, parseTable);
-            (void)tree;   /* result used for timing only */
 
             end_time = clock();
             total_CPU_time            = (double)(end_time - start_time);
@@ -162,6 +162,8 @@ int main(int argc, char *argv[]) {
             printf("Total CPU Time (clock ticks) : %.0f\n", total_CPU_time);
             printf("Total CPU Time (seconds)     : %lf\n",
                    total_CPU_time_in_seconds);
+            
+            if (tree) freeParseTree(tree);   /* free parse tree memory */
             break;
         }
 

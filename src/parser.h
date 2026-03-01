@@ -44,6 +44,12 @@ void createParseTable(FirstAndFollow *ff, ParseTableType table);
 void printParseTable(ParseTableType table);
 
 /* -------------------------------------------------------
+   Parse Tree Memory Management
+   ------------------------------------------------------- */
+/* Frees all nodes in the parse tree and returns memory to system. */
+void freeParseTree(ParseTreeNode *root);
+
+/* -------------------------------------------------------
    Parsing
    ------------------------------------------------------- */
 /*

@@ -2,6 +2,17 @@
  * stack.c
  * CS F363 - Compiler Construction, BITS Pilani, Jan 2026
  * Stack ADT used by the predictive (LL(1)) parser.
+ *
+ * Implementation:
+ *   - The stack is maintained as a simple singly-linked list
+ *     where each `StackElem` points to the next element.
+ *   - There is no fixed-size array; `stackPush` allocates a
+ *     new element and links it at the head, `stackPop` removes
+ *     the head and returns it.  The parser drives these
+ *     operations when expanding grammar symbols (see
+ *     `parseInputSourceCode` in parser.c).  The functions are
+ *     declared in parser.h and used extensively during parsing.
+ *
  * Each stack element carries a grammar symbol and the
  * corresponding parse-tree node pointer.
  */

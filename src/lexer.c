@@ -20,8 +20,8 @@ int transitionMatrix[MAX_STATES][INPUT_COUNT] = {
     {52, 65, 65, 11, 9, 65, 41, 43, 44, 2, 32, 28, 16, 24, 22, 21, 38, 49, 63, 15, 18, 17, 30, 35, 65, 25, 23, 26, 45, 20, 19, 27},
     // State 2
     {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 3, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8},
-    // State 3
-    {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 4, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8},
+    // State 3  [ERRATA FIX 2: <- is a lexical error; non-minus → state 66 (TK_ERROR), not state 8 (TK_LT)]
+    {66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 4, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66},
     // State 4
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 5, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
     // State 5
@@ -353,14 +353,34 @@ tokenInfo getNextToken(twinBuffer *tb) {
 
         nextState = transitionMatrix[currentState][input];
 
+        /* ---------------------------------------------------------------
+           ERRATA FIX 1 (Jan 30 notice): "23.abc" must NOT be a lexical
+           error.  Tokenize as: 23 -> TK_NUM, . -> TK_DOT, abc -> TK_FIELDID.
+
+           Problem: after reading "23." the DFA is in state 53.  When it
+           then reads a non-digit (e.g. 'a'), it transitions to the error
+           sink (state 65) with lexeme "23.".  A single retract only puts
+           the 'a' back; the '.' is already in the lexeme.
+
+           Fix: detect this specific situation (currentState==53, nextState
+           reaches the error sink) BEFORE the normal accepting-state logic,
+           perform a DOUBLE retraction (put back both the current char AND
+           the '.'), strip the '.' from the lexeme, and return TK_NUM.
+           ---------------------------------------------------------------- */
+        if (currentState == 53 && (nextState == 65 || nextState == 66)) {
+            retract(tb);          /* put back the non-digit character */
+            retract(tb);          /* put back the dot */
+            if (lp > 0) { lp--; tk.lexeme[lp] = '\0'; } /* strip dot */
+            tokenInfo result = handle_TK_NUM(tk.lexeme);
+            result.lineNo = lineNo;
+            return result;
+        }
+
         /* --- SINK STATE / ERROR HANDLING --- */
-        // If the DFA hits state 65, it's a lexical error. 
-        // We stop here to prevent an infinite loop
-        /* --- ERRATA HANDLING --- */
         /* --- ACCEPT / RETRACTION LOGIC --- */
         /* We always look up the state info structure, even for non-final
            states.  The "retract" flag is used by both the accept check and
-           the intermediate‑state requirement described later in the code. */
+           the intermediate-state requirement described later in the code. */
         StateInfo nextInfo = acceptStateMap[nextState];
 
         /* Update line count on newlines before we consider appending the
@@ -487,6 +507,10 @@ void initializeAcceptStateMap() {
     acceptStateMap[59] = (StateInfo){ .handler = handle_TK_RNUM,     .isFinal = true, .retract = true };
     acceptStateMap[61] = (StateInfo){ .handler = handle_TK_NUM,     .isFinal = true, .retract = true };
     acceptStateMap[65] = (StateInfo){ .handler = handle_TK_ERROR,     .isFinal = true, .retract = true };
+    /* ERRATA FIX 2: state 66 reached from state 3 (after "<-") on any non-minus char.
+       The Feb-2 notice says "<-" must be a lexical error.  retract=true puts back
+       the look-ahead character; lexeme at that point is already "<-". */
+    acceptStateMap[66] = (StateInfo){ .handler = handle_TK_ERROR, .isFinal = true, .retract = true };
     
     
     
