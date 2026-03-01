@@ -5,26 +5,33 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c11 -g
 
-TARGET = stage1exe
+TARGET = bin/stage1exe
 SRC_DIR = src
+BUILD_DIR = build
+BIN_DIR = bin
 
-# Automatically pick all .c files inside src
+# All source files
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 
-# Generate corresponding object files
-OBJS = $(SRCS:.c=.o)
+# Object files inside build/
+OBJS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRCS))
 
 # Default target
-all: $(TARGET)
+all: directories $(TARGET)
 
-# Link all object files
+# Create build and bin directories if they don't exist
+directories:
+	mkdir -p $(BUILD_DIR)
+	mkdir -p $(BIN_DIR)
+
+# Link object files → executable
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $(OBJS)
 
-# Generic rule to compile .c → .o
-%.o: %.c
+# Compile src/file.c → build/file.o
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Clean build files
+# Clean everything
 clean:
-	rm -f $(TARGET) $(OBJS)
+	rm -rf $(BUILD_DIR) $(BIN_DIR)
