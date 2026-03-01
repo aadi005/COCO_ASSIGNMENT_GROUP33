@@ -1,0 +1,289 @@
+% ============================================================
+%  CS F363 - Compiler Construction - BITS Pilani Jan 2026
+%  Complete LL(1) Grammar (After All Modifications)
+% ============================================================
+
+% Rule 0
+program ===> otherFunctions mainFunction
+
+% Rule 1
+mainFunction ===> TK_MAIN stmts TK_END
+
+% Rule 2
+otherFunctions ===> function otherFunctions
+
+% Rule 3
+otherFunctions ===> eps
+
+% Rule 4
+function ===> TK_FUNID input_par output_par TK_SEM stmts TK_END
+
+% Rule 5
+input_par ===> TK_INPUT TK_PARAMETER TK_LIST TK_SQL parameter_list TK_SQR
+
+% Rule 6
+output_par ===> TK_OUTPUT TK_PARAMETER TK_LIST TK_SQL parameter_list TK_SQR
+
+% Rule 7
+output_par ===> eps
+
+% Rule 8
+parameter_list ===> dataType TK_ID remaining_list
+
+% Rule 9
+dataType ===> primitiveDatatype
+
+% Rule 10
+dataType ===> constructedDatatype
+
+% Rule 11
+primitiveDatatype ===> TK_INT
+
+% Rule 12
+primitiveDatatype ===> TK_REAL
+
+% Rule 13
+constructedDatatype ===> TK_RECORD TK_RUID
+
+% Rule 14
+constructedDatatype ===> TK_UNION TK_RUID
+
+% Rule 15 [NEW: alias/typedef names allowed as constructedDatatype]
+constructedDatatype ===> TK_RUID
+
+% Rule 16
+remaining_list ===> TK_COMMA parameter_list
+
+% Rule 17
+remaining_list ===> eps
+
+% Rule 18
+stmts ===> typeDefinitions declarations otherStmts returnStmt
+
+% Rule 19
+typeDefinitions ===> actualOrRedefined typeDefinitions
+
+% Rule 20
+typeDefinitions ===> eps
+
+% Rule 21 [NEW non-terminal: actualOrRedefined]
+actualOrRedefined ===> typeDefinition
+
+% Rule 22
+actualOrRedefined ===> definetypeStmt
+
+% Rule 23
+typeDefinition ===> TK_RECORD TK_RUID fieldDefinitions TK_ENDRECORD
+
+% Rule 24
+typeDefinition ===> TK_UNION TK_RUID fieldDefinitions TK_ENDUNION
+
+% Rule 25
+fieldDefinitions ===> fieldDefinition fieldDefinition moreFields
+
+% Rule 26 [MODIFIED: fieldType replaces primitiveDatatype]
+fieldDefinition ===> TK_TYPE fieldType TK_COLON TK_FIELDID TK_SEM
+
+% Rule 27 [NEW non-terminal: fieldType]
+fieldType ===> primitiveDatatype
+
+% Rule 28
+fieldType ===> constructedDatatype
+
+% Rule 29
+moreFields ===> fieldDefinition moreFields
+
+% Rule 30
+moreFields ===> eps
+
+% Rule 31
+declarations ===> declaration declarations
+
+% Rule 32
+declarations ===> eps
+
+% Rule 33
+declaration ===> TK_TYPE dataType TK_COLON TK_ID global_or_not TK_SEM
+
+% Rule 34 [MODIFIED: TK_COLON is now part of global_or_not]
+global_or_not ===> TK_COLON TK_GLOBAL
+
+% Rule 35
+global_or_not ===> eps
+
+% Rule 36
+otherStmts ===> stmt otherStmts
+
+% Rule 37
+otherStmts ===> eps
+
+% Rule 38
+stmt ===> assignmentStmt
+
+% Rule 39
+stmt ===> iterativeStmt
+
+% Rule 40
+stmt ===> conditionalStmt
+
+% Rule 41
+stmt ===> ioStmt
+
+% Rule 42
+stmt ===> funCallStmt
+
+% Rule 43
+assignmentStmt ===> singleOrRecId TK_ASSIGNOP arithmeticExpression TK_SEM
+
+% Rule 44 [MODIFIED: left-factored with optionSingleConstructed]
+singleOrRecId ===> TK_ID optionSingleConstructed
+
+% Rule 45 [NEW]
+optionSingleConstructed ===> eps
+
+% Rule 46 [NEW]
+optionSingleConstructed ===> oneExpansion moreExpansions
+
+% Rule 47 [NEW]
+oneExpansion ===> TK_DOT TK_FIELDID
+
+% Rule 48 [NEW]
+moreExpansions ===> oneExpansion moreExpansions
+
+% Rule 49 [NEW]
+moreExpansions ===> eps
+
+% Rule 50 [MODIFIED: TK_SEM added at end]
+funCallStmt ===> outputParameters TK_CALL TK_FUNID TK_WITH TK_PARAMETERS inputParameters TK_SEM
+
+% Rule 51
+outputParameters ===> TK_SQL idList TK_SQR TK_ASSIGNOP
+
+% Rule 52
+outputParameters ===> eps
+
+% Rule 53
+inputParameters ===> TK_SQL idList TK_SQR
+
+% Rule 54
+iterativeStmt ===> TK_WHILE TK_OP booleanExpression TK_CL stmt otherStmts TK_ENDWHILE
+
+% Rule 55 [MODIFIED: TK_OP TK_CL added; elsePart new NT for left-factoring]
+conditionalStmt ===> TK_IF TK_OP booleanExpression TK_CL TK_THEN stmt otherStmts elsePart
+
+% Rule 56 [NEW]
+elsePart ===> TK_ELSE stmt otherStmts TK_ENDIF
+
+% Rule 57 [NEW]
+elsePart ===> TK_ENDIF
+
+% Rule 58
+ioStmt ===> TK_READ TK_OP var TK_CL TK_SEM
+
+% Rule 59
+ioStmt ===> TK_WRITE TK_OP var TK_CL TK_SEM
+
+% Rule 60 [MODIFIED: left-recursion eliminated]
+arithmeticExpression ===> term expPrime
+
+% Rule 61
+expPrime ===> lowPrecedenceOperators term expPrime
+
+% Rule 62
+expPrime ===> eps
+
+% Rule 63
+term ===> factor termPrime
+
+% Rule 64
+termPrime ===> highPrecedenceOperators factor termPrime
+
+% Rule 65
+termPrime ===> eps
+
+% Rule 66
+factor ===> TK_OP arithmeticExpression TK_CL
+
+% Rule 67
+factor ===> var
+
+% Rule 68
+highPrecedenceOperators ===> TK_MUL
+
+% Rule 69
+highPrecedenceOperators ===> TK_DIV
+
+% Rule 70
+lowPrecedenceOperators ===> TK_PLUS
+
+% Rule 71
+lowPrecedenceOperators ===> TK_MINUS
+
+% Rule 72
+booleanExpression ===> TK_OP booleanExpression TK_CL logicalOp TK_OP booleanExpression TK_CL
+
+% Rule 73
+booleanExpression ===> var relationalOp var
+
+% Rule 74 [MODIFIED: TK_OP TK_CL added around nested booleanExpression]
+booleanExpression ===> TK_NOT TK_OP booleanExpression TK_CL
+
+% Rule 75 [MODIFIED: var now includes singleOrRecId]
+var ===> singleOrRecId
+
+% Rule 76
+var ===> TK_NUM
+
+% Rule 77
+var ===> TK_RNUM
+
+% Rule 78
+logicalOp ===> TK_AND
+
+% Rule 79
+logicalOp ===> TK_OR
+
+% Rule 80
+relationalOp ===> TK_LT
+
+% Rule 81
+relationalOp ===> TK_LE
+
+% Rule 82
+relationalOp ===> TK_EQ
+
+% Rule 83
+relationalOp ===> TK_GT
+
+% Rule 84
+relationalOp ===> TK_GE
+
+% Rule 85
+relationalOp ===> TK_NE
+
+% Rule 86
+returnStmt ===> TK_RETURN optionalReturn TK_SEM
+
+% Rule 87
+optionalReturn ===> TK_SQL idList TK_SQR
+
+% Rule 88
+optionalReturn ===> eps
+
+% Rule 89
+idList ===> TK_ID moreIds
+
+% Rule 90
+moreIds ===> TK_COMMA idList
+
+% Rule 91
+moreIds ===> eps
+
+% Rule 92
+definetypeStmt ===> TK_DEFINETYPE A TK_RUID TK_AS TK_RUID
+
+% Rule 93
+A ===> TK_RECORD
+
+% Rule 94
+A ===> TK_UNION
