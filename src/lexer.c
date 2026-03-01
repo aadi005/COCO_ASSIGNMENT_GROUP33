@@ -573,7 +573,7 @@ void printToken(tokenInfo tk)
     /* ========================= */
     if (tk.token == TK_LENGTH_ERROR)
     {
-        printf("Line no. %d: Error: Variable Identifier is longer than the prescribed length of 20 characters.\n",
+        printf("Line %d Error: Variable Identifier is longer than the prescribed length of 20 characters.\n",
                tk.lineNo);
         return;
     }
@@ -584,10 +584,10 @@ void printToken(tokenInfo tk)
     if (tk.token == TK_ERROR)
     {
         if (strlen(tk.lexeme)==1){
-            printf("Line no %d: Error: Unknown Symbol <%s>\n",
+            printf("Line %d Error: Unknown Symbol <%s>\n",
                         tk.lineNo, tk.lexeme);
         }else{
-            printf("Line no %d: Error: Unknown Pattern <%s>\n",
+            printf("Line %d Error: Unknown pattern <%s>\n",
                tk.lineNo, tk.lexeme);
         }
         
