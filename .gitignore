@@ -5,3 +5,4 @@ output.txt
 parser_errors.txt
 build/
 stage1exe
+cleaned_output.txt
