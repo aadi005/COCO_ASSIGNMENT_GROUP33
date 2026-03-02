@@ -1,3 +1,10 @@
+# Group 33
+# Aaditya Goel 2022B3A70417P
+# Divyansh Jha 2022B3A70438P
+# Prakhar Mittal 2022B3A70426P
+# Mukund Srivastava 2022B3A70562P
+# Aryan Gupta 2022B3A70495P
+# Garv Gulati 2022B4A70685P
 # =========================================
 # Compiler Construction Project Makefile
 # =========================================
@@ -17,7 +24,7 @@ MKDIR := mkdir -p
 RMRF := rm -rf
 endif
 
-TARGET = $(BIN_DIR)/$(TARGET_NAME)$(EXE)
+TARGET = $(TARGET_NAME)$(EXE)
 SRC_DIR = src
 BUILD_DIR = build
 BIN_DIR = bin
@@ -36,9 +43,10 @@ directories:
 	$(MKDIR) $(BUILD_DIR)
 	$(MKDIR) $(BIN_DIR)
 
-# Link object files → executable
+# Link object files → executable in project root
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS)
+	cp $@ $(BIN_DIR)/$(TARGET_NAME)$(EXE)
 
 # Compile src/file.c → build/file.o
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
@@ -48,5 +56,6 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 clean:
 	$(RMRF) $(BUILD_DIR)
 	$(RMRF) $(BIN_DIR)
+	$(RMRF) $(TARGET)
 
 .PHONY: all clean directories
