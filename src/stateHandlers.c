@@ -92,7 +92,7 @@ tokenInfo handle_NOT(char* lexeme) {
     return tk;
 }
 
-// Build minus token.
+// Build Operators token.
 tokenInfo handle_TK_MINUS(char* lexeme) {
     tokenInfo tk;
     tk.token = TK_MINUS;
