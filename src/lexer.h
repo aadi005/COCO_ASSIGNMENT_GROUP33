@@ -44,6 +44,9 @@ void addCharToLexeme(char *lexeme, char c);
 // Print token in project output format.
 void printToken(tokenInfo tk);
 
+// Configure optional files for mirroring lexer output.
+void setLexerOutputFiles(FILE *tokenFile, FILE *errorFile);
+
 // Populate accept-state handlers for DFA.
 void initializeAcceptStateMap() ;
 

@@ -90,6 +90,16 @@ int main(int argc, char *argv[]) {
             printf("\n--- Lexical Analysis Token List ---\n");
             FILE *fp = fopen(sourceFile, "r");
             if (!fp) { printf("Error opening source file.\n"); break; }
+            FILE *lexerTokenFile = fopen("lexer_tokens.txt", "w");
+            FILE *lexerErrorFile = fopen("lexer_errors.txt", "w");
+            if (!lexerTokenFile || !lexerErrorFile) {
+                printf("Error opening lexer output files.\n");
+                if (lexerTokenFile) fclose(lexerTokenFile);
+                if (lexerErrorFile) fclose(lexerErrorFile);
+                fclose(fp);
+                break;
+            }
+            setLexerOutputFiles(lexerTokenFile, lexerErrorFile);
 
             // Run lexer until EOF.
             twinBuffer *tb = initializeLexer(fp);
@@ -98,6 +108,9 @@ int main(int argc, char *argv[]) {
             printf("\n%-10s  %-25s  %s\n", "Line No.", "Lexeme", "Token Name");
             printf("%-10s  %-25s  %s\n",
                    "--------", "------", "----------");
+            fprintf(lexerTokenFile, "\n%-10s  %-25s  %s\n", "Line No.", "Lexeme", "Token Name");
+            fprintf(lexerTokenFile, "%-10s  %-25s  %s\n",
+                    "--------", "------", "----------");
 
             while (1) {
                 tk = getNextToken(tb);
@@ -105,6 +118,9 @@ int main(int argc, char *argv[]) {
                 printToken(tk);
             }
 
+            setLexerOutputFiles(NULL, NULL);
+            fclose(lexerTokenFile);
+            fclose(lexerErrorFile);
             fclose(fp);
             free(tb);
             break;
@@ -112,6 +128,9 @@ int main(int argc, char *argv[]) {
 
         case 3: {
             printf("\n--- Parsing Source Code ---\n");
+            FILE *parserErrorFile = fopen("parser_errors.txt", "w");
+            if (!parserErrorFile) { printf("Error opening parser error file.\n"); break; }
+            setParserErrorFile(parserErrorFile);
             // Build and dump parse tree.
             ParseTreeNode *tree =
                 parseInputSourceCode(sourceFile, parseTable);
@@ -119,6 +138,8 @@ int main(int argc, char *argv[]) {
                 printParseTree(tree, parseTreeFile);
                 freeParseTree(tree);
             }
+            setParserErrorFile(NULL);
+            fclose(parserErrorFile);
             break;
         }
 
@@ -142,8 +163,13 @@ int main(int argc, char *argv[]) {
             fclose(fp);
             free(tb);
 
+            FILE *parserErrorFile = fopen("parser_errors.txt", "w");
+            if (!parserErrorFile) { printf("Error opening parser error file.\n"); break; }
+            setParserErrorFile(parserErrorFile);
             ParseTreeNode *tree =
                 parseInputSourceCode(sourceFile, parseTable);
+            setParserErrorFile(NULL);
+            fclose(parserErrorFile);
 
             end_time = clock(); // stop timing
             total_CPU_time            = (double)(end_time - start_time);

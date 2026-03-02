@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdarg.h>
 
 #include "parser.h"
 #include "lexer.h"
@@ -25,6 +26,24 @@ Production     grammar[NUM_PRODUCTIONS];
 FirstAndFollow FF;
 // Global LL(1) parse table.
 ParseTableType parseTable;
+static FILE *gParserErrorOut = NULL;
+
+static void parserErrorPrint(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
+
+    if (gParserErrorOut) {
+        va_start(args, fmt);
+        vfprintf(gParserErrorOut, fmt, args);
+        va_end(args);
+    }
+}
+
+void setParserErrorFile(FILE *errorFile) {
+    gParserErrorOut = errorFile;
+}
 
 // Readable names for non-terminals.
 const char *ntNames[NT_COUNT] = {
@@ -571,15 +590,15 @@ static tokenInfo nextMeaningfulFromStream(TokenStream *ts) {
 
         if (tk.token == TK_ERROR) {
             if (strlen(tk.lexeme) == 1)
-                printf("Line %d Error: Unknown Symbol <%s>\n", tk.lineNo, tk.lexeme);
+                parserErrorPrint("Line %d Error: Unknown Symbol <%s>\n", tk.lineNo, tk.lexeme);
             else
-                printf("Line %d Error: Unknown pattern <%s>\n", tk.lineNo, tk.lexeme);
+                parserErrorPrint("Line %d Error: Unknown pattern <%s>\n", tk.lineNo, tk.lexeme);
             continue; // report and skip bad lexeme
         }
 
         if (tk.token == TK_LENGTH_ERROR) {
-            printf("Line %d Error: Variable Identifier is longer than the prescribed length of 20 characters.\n",
-                   tk.lineNo);
+            parserErrorPrint("Line %d Error: Variable Identifier is longer than the prescribed length of 20 characters.\n",
+                             tk.lineNo);
             continue;
         }
 
@@ -664,11 +683,11 @@ ParseTreeNode *parseInputSourceCode(char *testcaseFile, ParseTableType table) {
                     lookahead = nextMeaningfulFromStream(&stream);
             } else {
 
-                printf("Line %d Error: The token %s for lexeme %s does not match with the expected token %s\n",
-                       lookahead.lineNo,
-                       (lookahead.token < NUM_TOKENS) ? tokenNameStr[lookahead.token] : "UNKNOWN",
-                       lookahead.lexeme,
-                       tokenNameStr[top.terminal]);
+                parserErrorPrint("Line %d Error: The token %s for lexeme %s does not match with the expected token %s\n",
+                                 lookahead.lineNo,
+                                 (lookahead.token < NUM_TOKENS) ? tokenNameStr[lookahead.token] : "UNKNOWN",
+                                 lookahead.lexeme,
+                                 tokenNameStr[top.terminal]);
                 syntaxOK = false;
                 StackElem *popped = stackPop(&stack);
                 free(popped);
@@ -681,8 +700,8 @@ ParseTreeNode *parseInputSourceCode(char *testcaseFile, ParseTableType table) {
         int token     = (int)lookahead.token;
 
         if (token < 0 || token >= NUM_TOKENS) {
-            printf("Line %d Error: Invalid token UNKNOWN encountered with value %s stack top %s\n",
-                   lookahead.lineNo, lookahead.lexeme, ntNames[A]);
+            parserErrorPrint("Line %d Error: Invalid token UNKNOWN encountered with value %s stack top %s\n",
+                             lookahead.lineNo, lookahead.lexeme, ntNames[A]);
             syntaxOK = false;
             StackElem *popped = stackPop(&stack);
             free(popped);
@@ -708,11 +727,11 @@ ParseTreeNode *parseInputSourceCode(char *testcaseFile, ParseTableType table) {
                 continue;
             }
 
-            printf("Line %d Error: Invalid token %s encountered with value %s stack top %s\n",
-                   lookahead.lineNo,
-                   (lookahead.token < NUM_TOKENS) ? tokenNameStr[lookahead.token] : "UNKNOWN",
-                   lookahead.lexeme,
-                   ntNames[A]);
+            parserErrorPrint("Line %d Error: Invalid token %s encountered with value %s stack top %s\n",
+                             lookahead.lineNo,
+                             (lookahead.token < NUM_TOKENS) ? tokenNameStr[lookahead.token] : "UNKNOWN",
+                             lookahead.lexeme,
+                             ntNames[A]);
             syntaxOK = false;
 
             while (lookahead.token != TK_EOF &&

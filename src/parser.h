@@ -42,6 +42,9 @@ ParseTreeNode *parseInputSourceCode(char *testcaseFile,
 // Write parse tree to output file.
 void printParseTree(ParseTreeNode *root, char *outfile);
 
+// Configure optional file for mirroring parser error lines.
+void setParserErrorFile(FILE *errorFile);
+
 // Push one symbol node pair on parse stack.
 void       stackPush   (ParseStack *s, GrammarSymbol sym, ParseTreeNode *node);
 // Pop and return top stack element.

@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include "lexerDef.h"
 #include "stateHandlers.h"
 #include <ctype.h>
@@ -18,6 +19,32 @@
 
 // Accept-state metadata: handler + final/retract flags.
 StateInfo acceptStateMap[MAX_STATES] = { {NULL, false, false} };
+static FILE *gLexerTokenOut = NULL;
+static FILE *gLexerErrorOut = NULL;
+
+static void lexerPrintToStreams(bool isError, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
+
+    if (gLexerTokenOut) {
+        va_start(args, fmt);
+        vfprintf(gLexerTokenOut, fmt, args);
+        va_end(args);
+    }
+
+    if (isError && gLexerErrorOut) {
+        va_start(args, fmt);
+        vfprintf(gLexerErrorOut, fmt, args);
+        va_end(args);
+    }
+}
+
+void setLexerOutputFiles(FILE *tokenFile, FILE *errorFile) {
+    gLexerTokenOut = tokenFile;
+    gLexerErrorOut = errorFile;
+}
 // DFA transition table generated from state design
 int transitionMatrix[MAX_STATES][INPUT_COUNT] = {
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
@@ -457,26 +484,30 @@ void printToken(tokenInfo tk)
 
     if (tk.token == TK_LENGTH_ERROR)
     {
-        printf("Line %d Error: Variable Identifier is longer than the prescribed length of 20 characters.\n",
-               tk.lineNo);
+        lexerPrintToStreams(true,
+                            "Line %d Error: Variable Identifier is longer than the prescribed length of 20 characters.\n",
+                            tk.lineNo);
         return;
     }
 
     if (tk.token == TK_ERROR)
     {
         if (strlen(tk.lexeme)==1){
-            printf("Line %d Error: Unknown Symbol <%s>\n",
-                        tk.lineNo, tk.lexeme);
+            lexerPrintToStreams(true,
+                                "Line %d Error: Unknown Symbol <%s>\n",
+                                tk.lineNo, tk.lexeme);
         }else{
-            printf("Line %d Error: Unknown pattern <%s>\n",
-               tk.lineNo, tk.lexeme);
+            lexerPrintToStreams(true,
+                                "Line %d Error: Unknown pattern <%s>\n",
+                                tk.lineNo, tk.lexeme);
         }
 
         return;
     }
 
-    printf("Line no. %d\t Lexeme %s\t Token %s\n",
-           tk.lineNo, tk.lexeme, name);
+    lexerPrintToStreams(false,
+                        "Line no. %d\t Lexeme %s\t Token %s\n",
+                        tk.lineNo, tk.lexeme, name);
 }
 // Return keyword token if reserved, else TK_ID.
 TokenName checkKeyword(char *lexeme) {
