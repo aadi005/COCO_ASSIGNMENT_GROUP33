@@ -27,7 +27,6 @@ endif
 TARGET = $(TARGET_NAME)$(EXE)
 SRC_DIR = src
 BUILD_DIR = build
-BIN_DIR = bin
 
 # All source files
 SRCS = $(wildcard $(SRC_DIR)/*.c)
@@ -35,22 +34,15 @@ SRCS = $(wildcard $(SRC_DIR)/*.c)
 # Object files inside build/
 OBJS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRCS))
 
-# Default target
 all: directories $(TARGET)
 
-# Create build and bin directories if they don't exist
+# Create build directory if it doesn't exist
 directories:
 	$(MKDIR) $(BUILD_DIR)
-	$(MKDIR) $(BIN_DIR)
 
-# Link object files → executable in project root
+# Link object files to executable in project root
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS)
-ifeq ($(OS),Windows_NT)
-	powershell -Command "if (!(Test-Path $(BIN_DIR))) { New-Item -ItemType Directory -Path $(BIN_DIR) -Force | Out-Null }; Copy-Item -Path $@ -Destination $(BIN_DIR)/ -Force"
-else
-	$(CP) $@ $(BIN_DIR)/$(TARGET_NAME)$(EXE)
-endif
 
 # Compile src/file.c → build/file.o
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
@@ -59,7 +51,6 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 # Clean everything
 clean:
 	$(RMRF) $(BUILD_DIR)
-	$(RMRF) $(BIN_DIR)
 	$(RMRF) $(TARGET)
 
 .PHONY: all clean directories
