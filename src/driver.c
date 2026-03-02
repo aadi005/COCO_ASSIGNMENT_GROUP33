@@ -1,17 +1,4 @@
-/*
- * driver.c
- * CS F363 - Compiler Construction, BITS Pilani, Jan 2026
- *
- * Drives the full compiler pipeline.
- * Usage: ./stage1exe <sourcefile> <parsetreeoutfile>
- *
- * Menu options:
- *   0 : Exit
- *   1 : Remove comments - print comment-free code to console
- *   2 : Print token list (lexer only, line number wise)
- *   3 : Parse source code, print errors and parse tree to file
- *   4 : Print total CPU time taken by lexer + parser
- */
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,9 +11,7 @@
 #include "parser.h"
 #include "parserDef.h"
 
-/* ==========================================================
-   IMPLEMENTATION STATUS DISPLAY
-   ========================================================== */
+
 void printImplementationStatus(void) {
     printf("=====================================================\n");
     printf("  CS F363 Compiler Project - BITS Pilani Jan 2026  \n");
@@ -39,9 +24,7 @@ void printImplementationStatus(void) {
     printf("=====================================================\n\n");
 }
 
-/* ==========================================================
-   MAIN DRIVER
-   ========================================================== */
+
 int main(int argc, char *argv[]) {
 
     if (argc != 3) {
@@ -52,11 +35,12 @@ int main(int argc, char *argv[]) {
     char *sourceFile      = argv[1];
     char *parseTreeFile   = argv[2];
 
-    /* ---------- One-time initialisations ---------- */
-    initializeAcceptStateMap();   /* build DFA accept state map */
-    initGrammar();                /* populate grammar rules array */
-    FF = computeFirstAndFollowSets();     /* automated FIRST/FOLLOW */
-    createParseTable(&FF, parseTable);    /* build LL(1) parse table */
+
+    // one-time setup before menu loop
+    initializeAcceptStateMap();
+    initGrammar();
+    FF = computeFirstAndFollowSets();
+    createParseTable(&FF, parseTable);
 
     printImplementationStatus();
 
@@ -80,11 +64,11 @@ int main(int argc, char *argv[]) {
 
         switch (option) {
 
-        /* -------------------------------------------------- */
+
         case 1: {
             printf("\n--- Comment-free source code ---\n");
             removeComments(sourceFile, "cleaned_output.txt");
-            /* Print the cleaned file to console */
+
             FILE *cf = fopen("cleaned_output.txt", "r");
             if (!cf) { printf("Error opening cleaned file.\n"); break; }
             int ch;
@@ -93,7 +77,7 @@ int main(int argc, char *argv[]) {
             break;
         }
 
-        /* -------------------------------------------------- */
+
         case 2: {
             printf("\n--- Lexical Analysis Token List ---\n");
             FILE *fp = fopen(sourceFile, "r");
@@ -117,28 +101,28 @@ int main(int argc, char *argv[]) {
             break;
         }
 
-        /* -------------------------------------------------- */
+
         case 3: {
             printf("\n--- Parsing Source Code ---\n");
             ParseTreeNode *tree =
                 parseInputSourceCode(sourceFile, parseTable);
             if (tree) {
                 printParseTree(tree, parseTreeFile);
-                freeParseTree(tree);   /* free parse tree memory */
+                freeParseTree(tree);
             }
             break;
         }
 
-        /* -------------------------------------------------- */
+
         case 4: {
             printf("\n--- Measuring Execution Time (Lexer + Parser) ---\n");
 
             clock_t start_time, end_time;
             double  total_CPU_time, total_CPU_time_in_seconds;
 
-            start_time = clock();
+            start_time = clock(); // start timing
 
-            /* Run lexer */
+
             FILE *fp = fopen(sourceFile, "r");
             if (!fp) { printf("Error opening source file.\n"); break; }
             twinBuffer *tb = initializeLexer(fp);
@@ -150,23 +134,23 @@ int main(int argc, char *argv[]) {
             fclose(fp);
             free(tb);
 
-            /* Run parser */
+
             ParseTreeNode *tree =
                 parseInputSourceCode(sourceFile, parseTable);
 
-            end_time = clock();
+            end_time = clock(); // stop timing
             total_CPU_time            = (double)(end_time - start_time);
             total_CPU_time_in_seconds = total_CPU_time / CLOCKS_PER_SEC;
 
             printf("Total CPU Time (clock ticks) : %.0f\n", total_CPU_time);
             printf("Total CPU Time (seconds)     : %lf\n",
                    total_CPU_time_in_seconds);
-            
-            if (tree) freeParseTree(tree);   /* free parse tree memory */
+
+            if (tree) freeParseTree(tree);
             break;
         }
 
-        /* -------------------------------------------------- */
+
         default:
             printf("Invalid option. Please enter 0-4.\n");
         }

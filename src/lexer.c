@@ -4,169 +4,169 @@
 #include "lexer.h"
 #include "lexerDef.h"
 #include "stateHandlers.h"
-#include <ctype.h>   
-#include <stdbool.h>  
+#include <ctype.h>
+#include <stdbool.h>
 
-/* Definition of the global accept state map.  Every entry is initialised
-   to a dummy handler with isFinal=false and retract=false so that the
-   lexer can index it without having to check for NULL pointers. */
+
 
 
 StateInfo acceptStateMap[MAX_STATES] = { {NULL, false, false} };
+// DFA transition table generated from your state design
 int transitionMatrix[MAX_STATES][INPUT_COUNT] = {
-    // State 0
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 1
+
     {52, 65, 65, 11, 9, 65, 41, 43, 44, 2, 32, 28, 16, 24, 22, 21, 38, 49, 63, 15, 18, 17, 30, 35, 65, 25, 23, 26, 45, 20, 19, 27},
-    // State 2
+
     {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 3, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8},
-    // State 3  [ERRATA FIX 2: <- is a lexical error; non-minus → state 66 (TK_ERROR), not state 8 (TK_LT)]
+
     {66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 4, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66},
-    // State 4
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 5, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 5
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 6
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 7
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 8
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 9
+
     {10, 10, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
-    // State 10
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 11
+
     {10, 12, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
-    // State 12
+
     {14, 13, 14, 12, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14},
-    // State 13
+
     {14, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14},
-    // State 14
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 15
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 16
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 17
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 18
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 19
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 20
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 21
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 22
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 23
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 24
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 25
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 26
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 27
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 28
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 29, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 29
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 30
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 31, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 31
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 32
+
     {34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 33, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34},
-    // State 33
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 34
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 35
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 36, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 36
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 37, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 37
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 38
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 39, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 39
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 40, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 40
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 41
+
     {42, 42, 42, 42, 42, 42, 41, 41, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42},
-    // State 42
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 43
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 44
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 45
+
     {65, 65, 65, 65, 65, 46, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 46
+
     {47, 48, 48, 48, 48, 46, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48},
-    // State 47
+
     {47, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48},
-    // State 48
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 49
+
     {65, 65, 50, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 50
+
     {51, 51, 50, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51},
-    // State 51
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 52
+
     {52, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 53, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61},
-    // State 53
+
     {54, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 54
+
     {55, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 55
+
     {59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 56, 59, 59, 59, 59, 59, 59, 59},
-    // State 56
+
     {60, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 57, 65, 65, 65, 65, 65, 65, 57, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 57
+
     {60, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 58 (Skipped/Empty)
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 59
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 60
+
     {62, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 61
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 62
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 63
+
     {63, 63, 63, 63, 63, 63, 63, 64, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63},
-    // State 64
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-    // State 65
+
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-    // States 66
+
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
 };
 
-/* Helper to map characters to the transition matrix columns based on CSV header */
+
 InputType mapCharToEnum(int ch) {
-    // Treat both the EOF constant and any embedded nulls as end-of-file input
+
+    // treat '\0' as sentinel/EOF in twin buffers
     if (ch == EOF || ch == '\0') return EOF_TYPE;
     if (ch == ' ' || ch == '\t' || ch == '\r') return DELIM;
     if (ch == '\n') return NEWLINE;
-    
-    // Priority: digit1 (2-7) must be checked before general digit (0-9)
+
+
     if (ch >= '2' && ch <= '7') return DIGIT1;
     if (ch >= '0' && ch <= '9') return DIGIT;
-    
-    // Character classes for identifiers as defined in regex
-    
+
+
+
     if (ch=='b' || ch == 'c' || ch == 'd') return ALPHA1;
     if (ch >= 'a' && ch <= 'z' && (ch!='b' && ch != 'c' && ch != 'd')) return ALPHA2;
     if (ch >= 'a' && ch <= 'z') return ALPHA;
-    
+
     if ((ch >= 'A' && ch <= 'Z')) return ALPHABET;
 
     switch (ch) {
@@ -192,7 +192,7 @@ InputType mapCharToEnum(int ch) {
         case '_': return UNDERSCORE;
         case '&': return AMPERSAND;
         case '~': return NOT;
-        default: return INPUT_COUNT; 
+        default: return INPUT_COUNT;
     }
 }
 
@@ -209,21 +209,21 @@ twinBuffer* initializeLexer(FILE *fp) {
     memset(tb->buffer2, 0, BUFFER_SIZE);
 
     size_t n = fread(tb->buffer1, 1, BUFFER_SIZE - 1, tb->fp);
-    tb->buffer1[n] = '\0'; // sentinel
+    tb->buffer1[n] = '\0';
     return tb;
 }
 
 void refillBuffer(twinBuffer *tb) {
     if (tb->currentBuffer == 1) {
-        // switching TO buffer2, so fill buffer2
+
         memset(tb->buffer2, 0, BUFFER_SIZE);
         size_t n = fread(tb->buffer2, 1, BUFFER_SIZE - 1, tb->fp);
-        tb->buffer2[n] = '\0'; // sentinel
+        tb->buffer2[n] = '\0';
         tb->currentBuffer = 2;
     } else {
         memset(tb->buffer1, 0, BUFFER_SIZE);
         size_t n = fread(tb->buffer1, 1, BUFFER_SIZE - 1, tb->fp);
-        tb->buffer1[n] = '\0'; // sentinel
+        tb->buffer1[n] = '\0';
         tb->currentBuffer = 1;
     }
 }
@@ -233,14 +233,14 @@ int getNextChar(twinBuffer *tb) {
     int ch = (unsigned char)buf[tb->forward];
 
     if (ch == '\0') {
-        // hit sentinel — are we truly at EOF?
+
         if (feof(tb->fp)) return EOF;
-        // otherwise refill and read first char of new buffer
+
         refillBuffer(tb);
         tb->forward = 0;
         buf = (tb->currentBuffer == 1) ? tb->buffer1 : tb->buffer2;
         ch = (unsigned char)buf[tb->forward];
-        if (ch == '\0') return EOF; // new buffer also empty
+        if (ch == '\0') return EOF;
     }
 
     tb->forward++;
@@ -249,10 +249,10 @@ int getNextChar(twinBuffer *tb) {
 
 void retract(twinBuffer *tb) {
     if (tb->forward == 0) {
-        // switch back to the other buffer, last valid char
+
         tb->currentBuffer = (tb->currentBuffer == 1) ? 2 : 1;
         tb->forward = BUFFER_SIZE - 1;
-        // walk back past the sentinel to the last real character
+
         char *buf = (tb->currentBuffer == 1) ? tb->buffer1 : tb->buffer2;
         while (tb->forward > 0 && buf[tb->forward] == '\0')
             tb->forward--;
@@ -265,27 +265,20 @@ void retract(twinBuffer *tb) {
 tokenInfo getNextToken(twinBuffer *tb) {
     int currentState = 1;
     int nextState;
-    int ch;                    // now holds EOF sentinel as an int
+    int ch;
     tokenInfo tk;
     int lp = 0;
 
-    // Reset lexeme and token structure
+
     memset(tk.lexeme, 0, MAX_LEXEME_LEN);
     tk.lineNo = tb->lineNo;
 
     while (1) {
         ch = getNextChar(tb);
-        /* --- EOF HANDLING ---
-           Instead of returning immediately when EOF is encountered we defer the
-           decision.  This allows a token that ended exactly at end-of-file to be
-           flushed out before the EOF token itself is generated.  The variable
-           "lp" tracks how many characters have been accumulated in the current
-           lexeme.  If we are mid‑token we break the loop and handle the lexeme
-           after the loop; otherwise we can return the EOF token right away. */
+
         if (ch == EOF) {
             if (lp > 0) {
-                /* there is a partial lexeme waiting – break so it can be
-                   finalised below */
+
                 break;
             }
             tk.token = TK_EOF;
@@ -294,36 +287,27 @@ tokenInfo getNextToken(twinBuffer *tb) {
             return tk;
         }
 
-        
-        
 
-        /* --- UNDERSCORE / FUNID HANDLING ---
-           Function identifiers and other names start with an underscore.  Instead
-           of letting the DFA drop them into a sink state, handle them explicitly.
-           Collect characters until a non-alphanumeric/underscore is seen. */
 
-        
 
-        /* --- COMMENT HANDLING ---
-           A percent sign begins a comment; the entire rest of the line is ignored
-           but a TK_COMMENT token with lexeme "%" is returned so that the parser
-           (or test harness) can log its presence.  Subsequent characters up to and
-           including the newline are consumed here. */
+
+
+
+
+
         if (ch == '%') {
+            // keep comment token but skip full comment text
             tk.token = TK_COMMENT;
             strcpy(tk.lexeme, "%");
             tk.lineNo = tb->lineNo;
-            /* eat until end of line or file */
+
             while ((ch = getNextChar(tb)) != EOF && ch != '\n');
             if (ch == '\n') tb->lineNo++;
             return tk;
         }
 
         InputType input = mapCharToEnum(ch);
-        /* guard against unmapped characters returning INPUT_COUNT which would
-           index past the end of the transition table.  Unrecognised symbols
-           are considered lexical errors and produce a one‑character error
-           token. */
+
 
         if ((currentState!=1 && currentState!=12) && (input==ALPHA1 || input==ALPHA2) ){
             input = ALPHA;
@@ -344,9 +328,8 @@ tokenInfo getNextToken(twinBuffer *tb) {
 
 
         if (input == INPUT_COUNT) {
-            /* If we are mid-lexeme and encounter an unmapped character
-               (e.g. "&&|"), finalize the current lexeme first and leave the
-               current character for the next call. */
+            // unknown char: either finish current token or emit error
+
             if (lp > 0) {
                 retract(tb);
                 StateInfo info = acceptStateMap[currentState];
@@ -370,35 +353,29 @@ tokenInfo getNextToken(twinBuffer *tb) {
 
         nextState = transitionMatrix[currentState][input];
 
-        /* ---------------------------------------------------------------
-           Handle "23.abc" as: TK_NUM(23), TK_DOT(.), TK_FIELDID(abc).
-           When state 53 (after reading "<digits>.") goes to error on a
-           non-digit lookahead, retract twice so '.' is re-tokenized.
-           ---------------------------------------------------------------- */
+
         if (currentState == 53 && (nextState == 65 || nextState == 66)) {
-            retract(tb);          /* put back non-digit character */
-            retract(tb);          /* put back dot */
-            if (lp > 0) { lp--; tk.lexeme[lp] = '\0'; } /* strip dot */
+            // split 23.abc as NUM + DOT + FIELDID
+            retract(tb);
+            retract(tb);
+            if (lp > 0) { lp--; tk.lexeme[lp] = '\0'; }
             tokenInfo result = handle_TK_NUM(tk.lexeme);
             result.lineNo = tb->lineNo;
             return result;
         }
 
-        /* --- SINK STATE / ERROR HANDLING --- */
-        /* --- ACCEPT / RETRACTION LOGIC --- */
-        /* We always look up the state info structure, even for non-final
-           states.  The "retract" flag is used by both the accept check and
-           the intermediate-state requirement described later in the code. */
+
+
+
         StateInfo nextInfo = acceptStateMap[nextState];
 
-        /* Update line count on newlines before we consider appending the
-           character; this mirrors the behaviour of the previous implementation. */
+
 
         if (nextInfo.isFinal) {
+            // final state reached, return token now
             if (nextInfo.retract) {
-                /* consume nothing when the accept state is reached via an
-                   "other" transition. */
-                
+
+
                 retract(tb);
             } else {
                 if (lp < MAX_LEXEME_LEN - 1) {
@@ -407,33 +384,27 @@ tokenInfo getNextToken(twinBuffer *tb) {
                 }
             }
 
-            /* invoke handler and return token */
+
             tk.lineNo = tb->lineNo;
             tokenInfo result = nextInfo.handler(tk.lexeme);
             result.lineNo = tb->lineNo;
             return result;
         }
         if (ch == '\n') tb->lineNo++;
-        /* --- DELIMITER / NEWLINE HANDLING ---
-           When in state 1, skip all leading whitespace (delimiters & newlines).
-           When NOT in state 1 and a delimiter appears, treat it as end-of-token
-           marker *only if* we're in an accept state or the DFA would reject it
-           anyway. */
+
         if (currentState == 1 && (input == DELIM || input == NEWLINE)) {
-            // Skip leading whitespace in state 1
+            // ignore leading spaces/newlines
+
             tb->lexemeBegin = tb->forward;
             continue;
         }
 
-        /* --- STATE TRANSITION LOGIC --- */
 
-        /* handle retraction for intermediate states; the same flag that tells
-           us to retract on accept is also used here so that we don't have a
-           separate hard‑coded list. */
+
+
         if (nextInfo.retract) {
             retract(tb);
-            /* lexeme already contains the previous characters only, so no
-               additional adjustment is necessary */
+
         } else {
             if (lp < MAX_LEXEME_LEN - 1) {
                 tk.lexeme[lp++] = ch;
@@ -444,11 +415,7 @@ tokenInfo getNextToken(twinBuffer *tb) {
         currentState = nextState;
     }
 
-    /* --- EOF CLEANUP ---
-       we exited the loop because ch was EOF while lp>0.  The lexeme buffer
-       contains the characters that have been read so far; finalise a token
-       based on the current DFA state.  If the state is accepting we simply
-       invoke its handler, otherwise report a lexical error. */
+
     if (lp > 0) {
         StateInfo info = acceptStateMap[currentState];
         if (info.isFinal) {
@@ -463,18 +430,15 @@ tokenInfo getNextToken(twinBuffer *tb) {
         }
     }
 
-    /* no lexeme pending – fall through and return EOF token (should not
-       ordinarily happen because it would have been returned earlier) */
+
     tk.token = TK_EOF;
     strcpy(tk.lexeme, "EOF");
     tk.lineNo = tb->lineNo;
     return tk;
 }
 void initializeAcceptStateMap() {
-    /* set every slot to a harmless default; the noop handler is defined in
-       stateHandlers.c and simply returns an empty token.  All boolean flags
-       default to false so that a plain lookup can be done without checking
-       for NULL. */
+
+    // default: non-final states
     for (int i = 0; i < MAX_STATES; ++i) {
         acceptStateMap[i].handler = NULL;
         acceptStateMap[i].isFinal = false;
@@ -512,28 +476,27 @@ void initializeAcceptStateMap() {
     acceptStateMap[51] = (StateInfo){ .handler = handle_TK_RUID,     .isFinal = true, .retract = true };
     acceptStateMap[59] = (StateInfo){ .handler = handle_TK_RNUM,     .isFinal = true, .retract = true };
     acceptStateMap[65] = (StateInfo){ .handler = handle_TK_ERROR,     .isFinal = true, .retract = true };
-    /* ERRATA FIX 2: state 66 reached from state 3 (after "<-") on any non-minus char.
-       The Feb-2 notice says "<-" must be a lexical error.  retract=true puts back
-       the look-ahead character; lexeme at that point is already "<-". */
-    acceptStateMap[66] = (StateInfo){ .handler = handle_TK_ERROR, .isFinal = true, .retract = true };
-    
-    
-    
-    
-    
+
+    acceptStateMap[66] = (StateInfo){ .handler = handle_TK_ERROR, .isFinal = true, .retract = true }; // "<-" case
 
 
-    /* --- Special Accept States --- */
-    //acceptStateMap[42] = (StateInfo){ .handler = handle_TK_CUSTOM,     .isFinal = true , .retract = true };
-    //acceptStateMap[43] = (StateInfo){ .handler = handle_TK_NEW,     .isFinal = true };
+
+
+
+
+
+
+
+
 
     acceptStateMap[48] = (StateInfo){ .handler = handle_TK_FUNID,     .isFinal = true, .retract = true };
 
-    
+
 }
 
 void removeComments(char *inputFile, char *outputFile) {
-    // Basic implementation: read from inputFile, skip text between % and \n, write to outputFile
+
+    // simple pre-pass: drop '%' to end-of-line
     FILE *src = fopen(inputFile, "r");
     FILE *dest = fopen(outputFile, "w");
     if (!src || !dest) {
@@ -577,9 +540,9 @@ void printToken(tokenInfo tk)
     if (tk.token >= 0 && tk.token < (int)(sizeof(tokenNames)/sizeof(tokenNames[0])))
         name = tokenNames[tk.token];
 
-    /* ========================= */
-    /* Handle identifier length  */
-    /* ========================= */
+
+
+
     if (tk.token == TK_LENGTH_ERROR)
     {
         printf("Line %d Error: Variable Identifier is longer than the prescribed length of 20 characters.\n",
@@ -587,9 +550,9 @@ void printToken(tokenInfo tk)
         return;
     }
 
-    /* ========================= */
-    /* Handle lexical errors     */
-    /* ========================= */
+
+
+
     if (tk.token == TK_ERROR)
     {
         if (strlen(tk.lexeme)==1){
@@ -599,13 +562,13 @@ void printToken(tokenInfo tk)
             printf("Line %d Error: Unknown pattern <%s>\n",
                tk.lineNo, tk.lexeme);
         }
-        
+
         return;
     }
 
-    /* ========================= */
-    /* Normal token printing     */
-    /* ========================= */
+
+
+
     printf("Line no. %d\t Lexeme %s\t Token %s\n",
            tk.lineNo, tk.lexeme, name);
 }
@@ -637,5 +600,5 @@ TokenName checkKeyword(char *lexeme) {
     if (strcmp(lexeme, "record") == 0) return TK_RECORD;
     if (strcmp(lexeme, "endrecord") == 0) return TK_ENDRECORD;
     if (strcmp(lexeme, "else") == 0) return TK_ELSE;
-    return TK_ID; // Default if not a keyword
+    return TK_ID;
 }
