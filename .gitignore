@@ -1,1 +1,7 @@
 .DS_STORE
+lexer_errors.txt
+lexer_tokens.txt
+output.txt
+parser_errors.txt
+build/
+stage1exe
