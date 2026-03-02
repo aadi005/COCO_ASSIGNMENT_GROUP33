@@ -46,7 +46,11 @@ directories:
 # Link object files → executable in project root
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS)
-	cp $@ $(BIN_DIR)/$(TARGET_NAME)$(EXE)
+ifeq ($(OS),Windows_NT)
+	powershell -Command "if (!(Test-Path $(BIN_DIR))) { New-Item -ItemType Directory -Path $(BIN_DIR) -Force | Out-Null }; Copy-Item -Path $@ -Destination $(BIN_DIR)/ -Force"
+else
+	$(CP) $@ $(BIN_DIR)/$(TARGET_NAME)$(EXE)
+endif
 
 # Compile src/file.c → build/file.o
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c

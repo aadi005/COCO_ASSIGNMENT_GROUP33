@@ -82,7 +82,7 @@ void initGrammar(void) {
 
     grammar[r] = (Production){NT_OTHERFUNCTIONS, {NT(NT_FUNCTION), NT(NT_OTHERFUNCTIONS)}, 2, r}; r++;
 
-    grammar[r] = (Production){NT_OTHERFUNCTIONS, {0}, 0, r}; r++;
+    grammar[r] = (Production){NT_OTHERFUNCTIONS, {{0}}, 0, r}; r++;
 
     grammar[r] = (Production){NT_FUNCTION,
         {T(TK_FUNID), NT(NT_INPUT_PAR), NT(NT_OUTPUT_PAR), T(TK_SEM), NT(NT_STMTS), T(TK_END)},
@@ -96,7 +96,7 @@ void initGrammar(void) {
         {T(TK_OUTPUT), T(TK_PARAMETER), T(TK_LIST), T(TK_SQL), NT(NT_PARAMETER_LIST), T(TK_SQR)},
         6, r}; r++;
 
-    grammar[r] = (Production){NT_OUTPUT_PAR, {0}, 0, r}; r++;
+    grammar[r] = (Production){NT_OUTPUT_PAR, {{0}}, 0, r}; r++;
 
     grammar[r] = (Production){NT_PARAMETER_LIST,
         {NT(NT_DATA_TYPE), T(TK_ID), NT(NT_REMAINING_LIST)}, 3, r}; r++;
@@ -117,7 +117,7 @@ void initGrammar(void) {
 
     grammar[r] = (Production){NT_REMAINING_LIST, {T(TK_COMMA), NT(NT_PARAMETER_LIST)}, 2, r}; r++;
 
-    grammar[r] = (Production){NT_REMAINING_LIST, {0}, 0, r}; r++;
+    grammar[r] = (Production){NT_REMAINING_LIST, {{0}}, 0, r}; r++;
 
     grammar[r] = (Production){NT_STMTS,
         {NT(NT_TYPE_DEFINITIONS), NT(NT_DECLARATIONS), NT(NT_OTHER_STMTS), NT(NT_RETURN_STMT)},
@@ -126,7 +126,7 @@ void initGrammar(void) {
     grammar[r] = (Production){NT_TYPE_DEFINITIONS,
         {NT(NT_ACTUAL_OR_REDEFINED), NT(NT_TYPE_DEFINITIONS)}, 2, r}; r++;
 
-    grammar[r] = (Production){NT_TYPE_DEFINITIONS, {0}, 0, r}; r++;
+    grammar[r] = (Production){NT_TYPE_DEFINITIONS, {{0}}, 0, r}; r++;
 
     grammar[r] = (Production){NT_ACTUAL_OR_REDEFINED, {NT(NT_TYPE_DEFINITION)}, 1, r}; r++;
 
@@ -151,12 +151,12 @@ void initGrammar(void) {
     grammar[r] = (Production){NT_MORE_FIELDS,
         {NT(NT_FIELD_DEFINITION), NT(NT_MORE_FIELDS)}, 2, r}; r++;
 
-    grammar[r] = (Production){NT_MORE_FIELDS, {0}, 0, r}; r++;
+    grammar[r] = (Production){NT_MORE_FIELDS, {{0}}, 0, r}; r++;
 
     grammar[r] = (Production){NT_DECLARATIONS,
         {NT(NT_DECLARATION), NT(NT_DECLARATIONS)}, 2, r}; r++;
 
-    grammar[r] = (Production){NT_DECLARATIONS, {0}, 0, r}; r++;
+    grammar[r] = (Production){NT_DECLARATIONS, {{0}}, 0, r}; r++;
 
     grammar[r] = (Production){NT_DECLARATION,
         {T(TK_TYPE), NT(NT_DATA_TYPE), T(TK_COLON), T(TK_ID), NT(NT_GLOBAL_OR_NOT), T(TK_SEM)},
@@ -164,11 +164,11 @@ void initGrammar(void) {
 
     grammar[r] = (Production){NT_GLOBAL_OR_NOT, {T(TK_COLON), T(TK_GLOBAL)}, 2, r}; r++;
 
-    grammar[r] = (Production){NT_GLOBAL_OR_NOT, {0}, 0, r}; r++;
+    grammar[r] = (Production){NT_GLOBAL_OR_NOT, {{0}}, 0, r}; r++;
 
     grammar[r] = (Production){NT_OTHER_STMTS, {NT(NT_STMT), NT(NT_OTHER_STMTS)}, 2, r}; r++;
 
-    grammar[r] = (Production){NT_OTHER_STMTS, {0}, 0, r}; r++;
+    grammar[r] = (Production){NT_OTHER_STMTS, {{0}}, 0, r}; r++;
 
     grammar[r] = (Production){NT_STMT, {NT(NT_ASSIGNMENT_STMT)}, 1, r}; r++;
     grammar[r] = (Production){NT_STMT, {NT(NT_ITERATIVE_STMT)},  1, r}; r++;
@@ -182,7 +182,7 @@ void initGrammar(void) {
     grammar[r] = (Production){NT_SINGLE_OR_REC_ID,
         {T(TK_ID), NT(NT_OPTION_SINGLE_CONSTR)}, 2, r}; r++;
 
-    grammar[r] = (Production){NT_OPTION_SINGLE_CONSTR, {0}, 0, r}; r++;
+    grammar[r] = (Production){NT_OPTION_SINGLE_CONSTR, {{0}}, 0, r}; r++;
 
     grammar[r] = (Production){NT_OPTION_SINGLE_CONSTR,
         {NT(NT_ONE_EXPANSION), NT(NT_MORE_EXPANSIONS)}, 2, r}; r++;
@@ -192,7 +192,7 @@ void initGrammar(void) {
     grammar[r] = (Production){NT_MORE_EXPANSIONS,
         {NT(NT_ONE_EXPANSION), NT(NT_MORE_EXPANSIONS)}, 2, r}; r++;
 
-    grammar[r] = (Production){NT_MORE_EXPANSIONS, {0}, 0, r}; r++;
+    grammar[r] = (Production){NT_MORE_EXPANSIONS, {{0}}, 0, r}; r++;
 
     grammar[r] = (Production){NT_FUN_CALL_STMT,
         {NT(NT_OUTPUT_PARAMETERS), T(TK_CALL), T(TK_FUNID), T(TK_WITH),
@@ -201,7 +201,7 @@ void initGrammar(void) {
     grammar[r] = (Production){NT_OUTPUT_PARAMETERS,
         {T(TK_SQL), NT(NT_ID_LIST), T(TK_SQR), T(TK_ASSIGNOP)}, 4, r}; r++;
 
-    grammar[r] = (Production){NT_OUTPUT_PARAMETERS, {0}, 0, r}; r++;
+    grammar[r] = (Production){NT_OUTPUT_PARAMETERS, {{0}}, 0, r}; r++;
 
     grammar[r] = (Production){NT_INPUT_PARAMETERS,
         {T(TK_SQL), NT(NT_ID_LIST), T(TK_SQR)}, 3, r}; r++;
@@ -230,14 +230,14 @@ void initGrammar(void) {
     grammar[r] = (Production){NT_EXP_PRIME,
         {NT(NT_LOW_PREC_OP), NT(NT_TERM), NT(NT_EXP_PRIME)}, 3, r}; r++;
 
-    grammar[r] = (Production){NT_EXP_PRIME, {0}, 0, r}; r++;
+    grammar[r] = (Production){NT_EXP_PRIME, {{0}}, 0, r}; r++;
 
     grammar[r] = (Production){NT_TERM, {NT(NT_FACTOR), NT(NT_TERM_PRIME)}, 2, r}; r++;
 
     grammar[r] = (Production){NT_TERM_PRIME,
         {NT(NT_HIGH_PREC_OP), NT(NT_FACTOR), NT(NT_TERM_PRIME)}, 3, r}; r++;
 
-    grammar[r] = (Production){NT_TERM_PRIME, {0}, 0, r}; r++;
+    grammar[r] = (Production){NT_TERM_PRIME, {{0}}, 0, r}; r++;
 
     grammar[r] = (Production){NT_FACTOR,
         {T(TK_OP), NT(NT_ARITH_EXPR), T(TK_CL)}, 3, r}; r++;
@@ -282,13 +282,13 @@ void initGrammar(void) {
     grammar[r] = (Production){NT_OPTIONAL_RETURN,
         {T(TK_SQL), NT(NT_ID_LIST), T(TK_SQR)}, 3, r}; r++;
 
-    grammar[r] = (Production){NT_OPTIONAL_RETURN, {0}, 0, r}; r++;
+    grammar[r] = (Production){NT_OPTIONAL_RETURN, {{0}}, 0, r}; r++;
 
     grammar[r] = (Production){NT_ID_LIST, {T(TK_ID), NT(NT_MORE_IDS)}, 2, r}; r++;
 
     grammar[r] = (Production){NT_MORE_IDS, {T(TK_COMMA), NT(NT_ID_LIST)}, 2, r}; r++;
 
-    grammar[r] = (Production){NT_MORE_IDS, {0}, 0, r}; r++;
+    grammar[r] = (Production){NT_MORE_IDS, {{0}}, 0, r}; r++;
 
     grammar[r] = (Production){NT_DEFINETYPE_STMT,
         {T(TK_DEFINETYPE), NT(NT_A), T(TK_RUID), T(TK_AS), T(TK_RUID)}, 5, r}; r++;
