@@ -11,7 +11,7 @@
 #include "parser.h"
 #include "parserDef.h"
 
-
+// Prints static project status banner.
 void printImplementationStatus(void) {
     printf("=====================================================\n");
     printf("  CS F363 Compiler Project - BITS Pilani Jan 2026  \n");
@@ -24,17 +24,17 @@ void printImplementationStatus(void) {
     printf("=====================================================\n\n");
 }
 
-
 int main(int argc, char *argv[]) {
 
+    // Expect input source and parse-tree output path.
     if (argc != 3) {
         printf("Usage: %s <sourcecodefile> <parsetreeoutfile>\n", argv[0]);
         return 1;
     }
 
+    // CLI file arguments.
     char *sourceFile      = argv[1];
     char *parseTreeFile   = argv[2];
-
 
     // one-time setup before menu loop
     initializeAcceptStateMap();
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
 
     printImplementationStatus();
 
-    int option;
+    int option; // menu choice
     while (1) {
         printf("\n=========== MENU ===========\n");
         printf("0 : Exit\n");
@@ -64,11 +64,11 @@ int main(int argc, char *argv[]) {
 
         switch (option) {
 
-
         case 1: {
             printf("\n--- Comment-free source code ---\n");
             removeComments(sourceFile, "cleaned_output.txt");
 
+            // Print cleaned file on terminal.
             FILE *cf = fopen("cleaned_output.txt", "r");
             if (!cf) { printf("Error opening cleaned file.\n"); break; }
             int ch;
@@ -77,12 +77,12 @@ int main(int argc, char *argv[]) {
             break;
         }
 
-
         case 2: {
             printf("\n--- Lexical Analysis Token List ---\n");
             FILE *fp = fopen(sourceFile, "r");
             if (!fp) { printf("Error opening source file.\n"); break; }
 
+            // Run lexer until EOF.
             twinBuffer *tb = initializeLexer(fp);
             tokenInfo   tk;
 
@@ -101,9 +101,9 @@ int main(int argc, char *argv[]) {
             break;
         }
 
-
         case 3: {
             printf("\n--- Parsing Source Code ---\n");
+            // Build and dump parse tree.
             ParseTreeNode *tree =
                 parseInputSourceCode(sourceFile, parseTable);
             if (tree) {
@@ -113,15 +113,14 @@ int main(int argc, char *argv[]) {
             break;
         }
 
-
         case 4: {
             printf("\n--- Measuring Execution Time (Lexer + Parser) ---\n");
 
+            // Timing variables.
             clock_t start_time, end_time;
             double  total_CPU_time, total_CPU_time_in_seconds;
 
             start_time = clock(); // start timing
-
 
             FILE *fp = fopen(sourceFile, "r");
             if (!fp) { printf("Error opening source file.\n"); break; }
@@ -133,7 +132,6 @@ int main(int argc, char *argv[]) {
             }
             fclose(fp);
             free(tb);
-
 
             ParseTreeNode *tree =
                 parseInputSourceCode(sourceFile, parseTable);
@@ -149,7 +147,6 @@ int main(int argc, char *argv[]) {
             if (tree) freeParseTree(tree);
             break;
         }
-
 
         default:
             printf("Invalid option. Please enter 0-4.\n");

@@ -3,24 +3,21 @@
 
 #include "lexerDef.h"
 
-
-
+// Shared accept-state map from lexer.
 extern StateInfo acceptStateMap[MAX_STATES];
 
-
+// Fill accept-state handlers and flags.
 void initializeAcceptStateMap();
 
-
-
-
+// Identifier handlers.
 tokenInfo handle_TK_ID(char* lexeme);
 tokenInfo handle_TK_FUNID(char* lexeme);
 
-
+// Number handlers.
 tokenInfo handle_TK_NUM(char* lexeme);
 tokenInfo handle_TK_RNUM(char* lexeme);
 
-
+// Operator handlers.
 tokenInfo handle_TK_ASSIGNOP(char* lexeme);
 tokenInfo handle_TK_PLUS(char* lexeme);
 tokenInfo handle_TK_MINUS(char* lexeme);
@@ -36,7 +33,7 @@ tokenInfo handle_TK_GE(char* lexeme);
 tokenInfo handle_TK_NE(char* lexeme);
 tokenInfo handle_NOT(char* lexeme);
 
-
+// Delimiter handlers.
 tokenInfo handle_TK_SQL(char* lexeme);
 tokenInfo handle_TK_SQR(char* lexeme);
 tokenInfo handle_TK_OP(char* lexeme);
@@ -48,7 +45,7 @@ tokenInfo handle_TK_DOT(char* lexeme);
 tokenInfo handle_TK_RUID(char* lexeme);
 tokenInfo handle_TK_FIELDID(char* lexeme);
 
-
+// Generic lexical error token.
 tokenInfo handle_TK_ERROR(char* lexeme);
 
 #endif

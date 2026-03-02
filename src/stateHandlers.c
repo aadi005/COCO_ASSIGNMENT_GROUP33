@@ -3,15 +3,13 @@
 #include <string.h>
 #include "lexer.h"
 
-
+// Small helper to reuse shared retract logic.
 void handleRetraction(twinBuffer *tb) {
-
 
     retract(tb);
 }
 
-
-
+// Build integer number token.
 tokenInfo handle_TK_NUM(char* lexeme) {
     tokenInfo tk;
     tk.token = TK_NUM;
@@ -21,6 +19,7 @@ tokenInfo handle_TK_NUM(char* lexeme) {
     return tk;
 }
 
+// Build real number token.
 tokenInfo handle_TK_RNUM(char* lexeme) {
     tokenInfo tk;
     tk.token = TK_RNUM;
@@ -30,8 +29,7 @@ tokenInfo handle_TK_RNUM(char* lexeme) {
     return tk;
 }
 
-
-
+// Build ID token or keyword token.
 tokenInfo handle_TK_ID(char* lexeme) {
     tokenInfo tk;
 
@@ -44,12 +42,10 @@ tokenInfo handle_TK_ID(char* lexeme) {
     return tk;
 }
 
+// Build function id token, with _main special case.
 tokenInfo handle_TK_FUNID(char* lexeme) {
     tokenInfo tk;
     extern TokenName checkKeyword(char *lexeme);
-
-
-
 
     if (strcmp(lexeme, "_main") == 0) {
         tk.token = TK_MAIN;
@@ -67,8 +63,7 @@ tokenInfo handle_TK_FUNID(char* lexeme) {
     return tk;
 }
 
-
-
+// Build assignment token.
 tokenInfo handle_TK_ASSIGNOP(char* lexeme) {
     tokenInfo tk;
     tk.token = TK_ASSIGNOP;
@@ -76,6 +71,7 @@ tokenInfo handle_TK_ASSIGNOP(char* lexeme) {
     return tk;
 }
 
+// Build plus token.
 tokenInfo handle_TK_PLUS(char* lexeme) {
     tokenInfo tk;
     tk.token = TK_PLUS;
@@ -83,6 +79,7 @@ tokenInfo handle_TK_PLUS(char* lexeme) {
     return tk;
 }
 
+// Build not token.
 tokenInfo handle_NOT(char* lexeme) {
     tokenInfo tk;
     tk.token = TK_NOT;
@@ -90,6 +87,7 @@ tokenInfo handle_NOT(char* lexeme) {
     return tk;
 }
 
+// Build minus token.
 tokenInfo handle_TK_MINUS(char* lexeme) {
     tokenInfo tk;
     tk.token = TK_MINUS;
@@ -97,6 +95,7 @@ tokenInfo handle_TK_MINUS(char* lexeme) {
     return tk;
 }
 
+// Build dot token.
 tokenInfo handle_TK_DOT(char* lexeme) {
     tokenInfo tk;
     tk.token = TK_DOT;
@@ -104,6 +103,7 @@ tokenInfo handle_TK_DOT(char* lexeme) {
     return tk;
 }
 
+// Build semicolon token.
 tokenInfo handle_TK_SEM(char* lexeme) {
     tokenInfo tk;
     tk.token = TK_SEM;
@@ -111,8 +111,7 @@ tokenInfo handle_TK_SEM(char* lexeme) {
     return tk;
 }
 
-
-
+// One-line constructors for simple tokens.
 tokenInfo handle_TK_AND(char* lexeme) {
     tokenInfo tk; tk.token = TK_AND; strcpy(tk.lexeme, lexeme); return tk;
 }
@@ -141,26 +140,27 @@ tokenInfo handle_TK_COLON(char* lexeme) {
     tokenInfo tk; tk.token = TK_COLON; strcpy(tk.lexeme, lexeme); return tk;
 }
 
-
 tokenInfo handle_TK_EQ(char* lexeme) { tokenInfo tk; tk.token = TK_EQ; strcpy(tk.lexeme, lexeme); return tk; }
 tokenInfo handle_TK_GE(char* lexeme) { tokenInfo tk; tk.token = TK_GE; strcpy(tk.lexeme, lexeme); return tk; }
 tokenInfo handle_TK_GT(char* lexeme) { tokenInfo tk; tk.token = TK_GT; strcpy(tk.lexeme, lexeme); return tk; }
 tokenInfo handle_TK_NE(char* lexeme) { tokenInfo tk; tk.token = TK_NE; strcpy(tk.lexeme, lexeme); return tk; }
 tokenInfo handle_TK_OR(char* lexeme) { tokenInfo tk; tk.token = TK_OR; strcpy(tk.lexeme, lexeme); return tk; }
 
-
-
+// Build <= token.
 tokenInfo handle_TK_LE(char* lexeme) {
     tokenInfo tk; tk.token = TK_LE; strcpy(tk.lexeme, lexeme); return tk;
 }
+// Build < token.
 tokenInfo handle_TK_LT(char* lexeme) {
     tokenInfo tk; tk.token = TK_LT; strcpy(tk.lexeme, lexeme); return tk;
 }
 
+// Build record/union type id token.
 tokenInfo handle_TK_RUID(char* lexeme) {
     tokenInfo tk; tk.token = TK_RUID; strcpy(tk.lexeme, lexeme); return tk;
 }
 
+// Build lexical error token.
 tokenInfo handle_TK_ERROR(char* lexeme) {
     tokenInfo tk;
     tk.token = TK_ERROR;
@@ -169,6 +169,7 @@ tokenInfo handle_TK_ERROR(char* lexeme) {
     return tk;
 }
 
+// Build field-id token or keyword fallback.
 tokenInfo handle_TK_FIELDID(char* lexeme) {
     tokenInfo tk;
     TokenName kbd = checkKeyword(lexeme);

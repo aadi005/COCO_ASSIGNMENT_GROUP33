@@ -5,8 +5,9 @@
 #include "parserDef.h"
 #include "parser.h"
 
-
+// Push one element on parse stack.
 void stackPush(ParseStack *s, GrammarSymbol sym, ParseTreeNode *node) {
+    // New stack node.
     StackElem *elem = (StackElem *)malloc(sizeof(StackElem));
     if (!elem) {
         fprintf(stderr, "Fatal: stack memory allocation failed.\n");
@@ -19,7 +20,7 @@ void stackPush(ParseStack *s, GrammarSymbol sym, ParseTreeNode *node) {
     s->size++;
 }
 
-
+// Pop top element from parse stack.
 StackElem *stackPop(ParseStack *s) {
     if (!s->top) return NULL;
     StackElem *elem = s->top;
@@ -28,17 +29,17 @@ StackElem *stackPop(ParseStack *s) {
     return elem;
 }
 
-
+// Peek top element without removing it.
 StackElem *stackPeek(ParseStack *s) {
     return s->top;
 }
 
-
+// Returns 1 if stack is empty.
 int stackIsEmpty(ParseStack *s) {
     return (s->top == NULL);
 }
 
-
+// Free all elements in stack.
 void stackFree(ParseStack *s) {
     while (s->top) {
         StackElem *tmp = s->top;

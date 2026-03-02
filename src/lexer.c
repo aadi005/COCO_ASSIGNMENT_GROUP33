@@ -7,161 +7,88 @@
 #include <ctype.h>
 #include <stdbool.h>
 
-
-
-
+// Accept-state metadata: handler + final/retract flags.
 StateInfo acceptStateMap[MAX_STATES] = { {NULL, false, false} };
-// DFA transition table generated from your state design
+// DFA transition table generated from state design
 int transitionMatrix[MAX_STATES][INPUT_COUNT] = {
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {52, 65, 65, 11, 9, 65, 41, 43, 44, 2, 32, 28, 16, 24, 22, 21, 38, 49, 63, 15, 18, 17, 30, 35, 65, 25, 23, 26, 45, 20, 19, 27},
-
     {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 3, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8},
-
     {66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 4, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 5, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {10, 10, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {10, 12, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10},
-
     {14, 13, 14, 12, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14},
-
     {14, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 29, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 31, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 33, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34, 34},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 36, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 37, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 39, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 40, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {42, 42, 42, 42, 42, 42, 41, 41, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 46, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {47, 48, 48, 48, 48, 46, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48},
-
     {47, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 50, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {51, 51, 50, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {52, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 53, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61, 61},
-
     {54, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {55, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 56, 59, 59, 59, 59, 59, 59, 59},
-
     {60, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 57, 65, 65, 65, 65, 65, 65, 57, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {60, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {62, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {63, 63, 63, 63, 63, 63, 63, 64, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63, 63},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
-
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-
     {65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65},
 };
 
-
+// Map raw char to DFA input column.
 InputType mapCharToEnum(int ch) {
-
     // treat '\0' as sentinel/EOF in twin buffers
     if (ch == EOF || ch == '\0') return EOF_TYPE;
     if (ch == ' ' || ch == '\t' || ch == '\r') return DELIM;
     if (ch == '\n') return NEWLINE;
 
-
     if (ch >= '2' && ch <= '7') return DIGIT1;
     if (ch >= '0' && ch <= '9') return DIGIT;
-
-
 
     if (ch=='b' || ch == 'c' || ch == 'd') return ALPHA1;
     if (ch >= 'a' && ch <= 'z' && (ch!='b' && ch != 'c' && ch != 'd')) return ALPHA2;
@@ -196,6 +123,7 @@ InputType mapCharToEnum(int ch) {
     }
 }
 
+// Create lexer state and preload first buffer.
 twinBuffer* initializeLexer(FILE *fp) {
     twinBuffer *tb = (twinBuffer*)malloc(sizeof(twinBuffer));
     if (!tb) return NULL;
@@ -213,9 +141,9 @@ twinBuffer* initializeLexer(FILE *fp) {
     return tb;
 }
 
+// Refill inactive twin buffer and switch.
 void refillBuffer(twinBuffer *tb) {
     if (tb->currentBuffer == 1) {
-
         memset(tb->buffer2, 0, BUFFER_SIZE);
         size_t n = fread(tb->buffer2, 1, BUFFER_SIZE - 1, tb->fp);
         tb->buffer2[n] = '\0';
@@ -228,12 +156,12 @@ void refillBuffer(twinBuffer *tb) {
     }
 }
 
+// Fetch next char from active buffer.
 int getNextChar(twinBuffer *tb) {
     char *buf = (tb->currentBuffer == 1) ? tb->buffer1 : tb->buffer2;
     int ch = (unsigned char)buf[tb->forward];
 
     if (ch == '\0') {
-
         if (feof(tb->fp)) return EOF;
 
         refillBuffer(tb);
@@ -247,9 +175,9 @@ int getNextChar(twinBuffer *tb) {
     return ch;
 }
 
+// Move one char back in twin-buffer stream.
 void retract(twinBuffer *tb) {
     if (tb->forward == 0) {
-
         tb->currentBuffer = (tb->currentBuffer == 1) ? 2 : 1;
         tb->forward = BUFFER_SIZE - 1;
 
@@ -261,14 +189,13 @@ void retract(twinBuffer *tb) {
     }
 }
 
-
+// DFA driver: returns one token each call.
 tokenInfo getNextToken(twinBuffer *tb) {
-    int currentState = 1;
-    int nextState;
-    int ch;
-    tokenInfo tk;
-    int lp = 0;
-
+    int currentState = 1; // DFA current state
+    int nextState;        // DFA next state
+    int ch;               // current input character
+    tokenInfo tk;         // token being built
+    int lp = 0;           // lexeme length
 
     memset(tk.lexeme, 0, MAX_LEXEME_LEN);
     tk.lineNo = tb->lineNo;
@@ -278,7 +205,6 @@ tokenInfo getNextToken(twinBuffer *tb) {
 
         if (ch == EOF) {
             if (lp > 0) {
-
                 break;
             }
             tk.token = TK_EOF;
@@ -286,14 +212,6 @@ tokenInfo getNextToken(twinBuffer *tb) {
             tk.lineNo = tb->lineNo;
             return tk;
         }
-
-
-
-
-
-
-
-
 
         if (ch == '%') {
             // keep comment token but skip full comment text
@@ -308,7 +226,6 @@ tokenInfo getNextToken(twinBuffer *tb) {
 
         InputType input = mapCharToEnum(ch);
 
-
         if ((currentState!=1 && currentState!=12) && (input==ALPHA1 || input==ALPHA2) ){
             input = ALPHA;
         }
@@ -321,11 +238,9 @@ tokenInfo getNextToken(twinBuffer *tb) {
             input = ALPHABET;
         }
 
-
         if (currentState==55 && ch=='E'){
             input = E;
         }
-
 
         if (input == INPUT_COUNT) {
             // unknown char: either finish current token or emit error
@@ -353,7 +268,6 @@ tokenInfo getNextToken(twinBuffer *tb) {
 
         nextState = transitionMatrix[currentState][input];
 
-
         if (currentState == 53 && (nextState == 65 || nextState == 66)) {
             // split 23.abc as NUM + DOT + FIELDID
             retract(tb);
@@ -364,18 +278,11 @@ tokenInfo getNextToken(twinBuffer *tb) {
             return result;
         }
 
-
-
-
         StateInfo nextInfo = acceptStateMap[nextState];
-
-
 
         if (nextInfo.isFinal) {
             // final state reached, return token now
             if (nextInfo.retract) {
-
-
                 retract(tb);
             } else {
                 if (lp < MAX_LEXEME_LEN - 1) {
@@ -383,7 +290,6 @@ tokenInfo getNextToken(twinBuffer *tb) {
                     tk.lexeme[lp] = '\0';
                 }
             }
-
 
             tk.lineNo = tb->lineNo;
             tokenInfo result = nextInfo.handler(tk.lexeme);
@@ -399,9 +305,6 @@ tokenInfo getNextToken(twinBuffer *tb) {
             continue;
         }
 
-
-
-
         if (nextInfo.retract) {
             retract(tb);
 
@@ -414,7 +317,6 @@ tokenInfo getNextToken(twinBuffer *tb) {
 
         currentState = nextState;
     }
-
 
     if (lp > 0) {
         StateInfo info = acceptStateMap[currentState];
@@ -430,14 +332,13 @@ tokenInfo getNextToken(twinBuffer *tb) {
         }
     }
 
-
     tk.token = TK_EOF;
     strcpy(tk.lexeme, "EOF");
     tk.lineNo = tb->lineNo;
     return tk;
 }
+// Register all final DFA states with handlers.
 void initializeAcceptStateMap() {
-
     // default: non-final states
     for (int i = 0; i < MAX_STATES; ++i) {
         acceptStateMap[i].handler = NULL;
@@ -479,23 +380,12 @@ void initializeAcceptStateMap() {
 
     acceptStateMap[66] = (StateInfo){ .handler = handle_TK_ERROR, .isFinal = true, .retract = true }; // "<-" case
 
-
-
-
-
-
-
-
-
-
-
     acceptStateMap[48] = (StateInfo){ .handler = handle_TK_FUNID,     .isFinal = true, .retract = true };
-
 
 }
 
+// Copy file while skipping '%' comments.
 void removeComments(char *inputFile, char *outputFile) {
-
     // simple pre-pass: drop '%' to end-of-line
     FILE *src = fopen(inputFile, "r");
     FILE *dest = fopen(outputFile, "w");
@@ -518,6 +408,7 @@ void removeComments(char *inputFile, char *outputFile) {
     fclose(dest);
 }
 
+// Print token / lexical error in required format.
 void printToken(tokenInfo tk)
 {
     static const char *tokenNames[] = {
@@ -540,18 +431,12 @@ void printToken(tokenInfo tk)
     if (tk.token >= 0 && tk.token < (int)(sizeof(tokenNames)/sizeof(tokenNames[0])))
         name = tokenNames[tk.token];
 
-
-
-
     if (tk.token == TK_LENGTH_ERROR)
     {
         printf("Line %d Error: Variable Identifier is longer than the prescribed length of 20 characters.\n",
                tk.lineNo);
         return;
     }
-
-
-
 
     if (tk.token == TK_ERROR)
     {
@@ -566,12 +451,10 @@ void printToken(tokenInfo tk)
         return;
     }
 
-
-
-
     printf("Line no. %d\t Lexeme %s\t Token %s\n",
            tk.lineNo, tk.lexeme, name);
 }
+// Return keyword token if reserved, else TK_ID.
 TokenName checkKeyword(char *lexeme) {
     if (strcmp(lexeme, "with") == 0) return TK_WITH;
     if (strcmp(lexeme, "parameters") == 0) return TK_PARAMETERS;

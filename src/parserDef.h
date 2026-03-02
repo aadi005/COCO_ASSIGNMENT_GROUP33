@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-
+// Non-terminals of the grammar.
 typedef enum {
     NT_PROGRAM = 0,
     NT_MAINFUNCTION,
@@ -65,7 +65,7 @@ typedef enum {
     NT_COUNT
 } NonTerminal;
 
-
+// Grammar symbol type.
 typedef enum {
     SYM_TERMINAL,
     SYM_NON_TERMINAL,
@@ -73,65 +73,91 @@ typedef enum {
 } SymbolType;
 
 typedef struct {
+    // Symbol category.
     SymbolType type;
     union {
+        // Valid when type == SYM_TERMINAL.
         TokenName    terminal;
+        // Valid when type == SYM_NON_TERMINAL.
         NonTerminal  nonTerminal;
     };
 } GrammarSymbol;
 
-
+// Max RHS length per production.
 #define MAX_RHS          10
+// Total number of grammar productions.
 #define NUM_PRODUCTIONS  95
 
 typedef struct {
+    // Production LHS.
     NonTerminal   lhs;
+    // Production RHS sequence.
     GrammarSymbol rhs[MAX_RHS];
+    // Number of valid RHS symbols.
     int           rhsLen;
+    // Stable rule index.
     int           ruleNum;
 } Production;
 
-
+// Number of terminal tokens used by parser.
 #define NUM_TOKENS  59
+// Index used for epsilon in FIRST rows.
 #define EPS_IDX     59
+// FIRST row width including epsilon slot.
 #define FIRST_SIZE  60
+// FOLLOW row width (terminals + EOF).
 #define FOLLOW_SIZE 59
 
 typedef struct {
+    // FIRST sets by non-terminal.
     bool first [NT_COUNT][FIRST_SIZE];
+    // FOLLOW sets by non-terminal.
     bool follow[NT_COUNT][FOLLOW_SIZE];
 } FirstAndFollow;
 
-
+// LL(1) parse table stores rule indices.
 typedef int ParseTableType[NT_COUNT][NUM_TOKENS];
 
-
 typedef struct ParseTreeNode {
+    // Grammar symbol at this node.
     GrammarSymbol        symbol;
+    // Token data for leaf terminals.
     tokenInfo            tkInfo;
+    // Parent pointer.
     struct ParseTreeNode *parent;
+    // First child in sibling chain.
     struct ParseTreeNode *firstChild;
+    // Next sibling pointer.
     struct ParseTreeNode *nextSibling;
+    // True for terminal/epsilon leaves.
     bool                  isLeaf;
 } ParseTreeNode;
 
-
 typedef struct StackElem {
+    // Symbol stored on parse stack.
     GrammarSymbol   sym;
+    // Parse-tree node mapped to symbol.
     ParseTreeNode  *treeNode;
+    // Next stack element.
     struct StackElem *next;
 } StackElem;
 
 typedef struct {
+    // Top stack pointer.
     StackElem *top;
+    // Current stack size.
     int        size;
 } ParseStack;
 
-
+// Global grammar rules.
 extern Production     grammar[NUM_PRODUCTIONS];
+// Global FIRST/FOLLOW cache.
 extern FirstAndFollow FF;
+// Global LL(1) parse table.
 extern ParseTableType parseTable;
+// Non-terminal names for debug/print.
 extern const char    *ntNames[NT_COUNT];
+// Token names for debug/print.
 extern const char    *tokenNameStr[NUM_TOKENS];
 
 #endif
