@@ -30,16 +30,6 @@ tokenInfo handle_TK_NUM(char* lexeme);
 tokenInfo handle_TK_RNUM(char* lexeme);
 
 // Operator Handlers
-
-// comparison operators and logical OR
-tokenInfo handle_TK_EQ(char* lexeme);
-tokenInfo handle_TK_GE(char* lexeme);
-tokenInfo handle_TK_GT(char* lexeme);
-tokenInfo handle_TK_NE(char* lexeme);
-tokenInfo handle_TK_OR(char* lexeme);
-
-// custom ignore/reset handler for state 42
-tokenInfo handle_state42(char* lexeme);
 tokenInfo handle_TK_ASSIGNOP(char* lexeme);
 tokenInfo handle_TK_PLUS(char* lexeme);
 tokenInfo handle_TK_MINUS(char* lexeme);
@@ -47,13 +37,13 @@ tokenInfo handle_TK_MUL(char* lexeme);
 tokenInfo handle_TK_DIV(char* lexeme);
 tokenInfo handle_TK_AND(char* lexeme);
 tokenInfo handle_TK_OR(char* lexeme);
-tokenInfo handle_TK_NOT(char* lexeme);
 tokenInfo handle_TK_LT(char* lexeme);
 tokenInfo handle_TK_LE(char* lexeme);
 tokenInfo handle_TK_EQ(char* lexeme);
 tokenInfo handle_TK_GT(char* lexeme);
 tokenInfo handle_TK_GE(char* lexeme);
 tokenInfo handle_TK_NE(char* lexeme);
+tokenInfo handle_NOT(char* lexeme);
 
 // Delimiter Handlers
 tokenInfo handle_TK_SQL(char* lexeme);
@@ -64,9 +54,6 @@ tokenInfo handle_TK_COMMA(char* lexeme);
 tokenInfo handle_TK_SEM(char* lexeme);
 tokenInfo handle_TK_COLON(char* lexeme);
 tokenInfo handle_TK_DOT(char* lexeme);
-tokenInfo handle_NOT(char* lexeme);
-tokenInfo handle_TK_LE(char* lexeme);
-tokenInfo handle_TK_LT(char* lexeme);
 tokenInfo handle_TK_RUID(char* lexeme);
 tokenInfo handle_TK_FIELDID(char* lexeme);
 

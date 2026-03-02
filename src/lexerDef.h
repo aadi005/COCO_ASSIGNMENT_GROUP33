@@ -140,6 +140,7 @@ typedef struct {
     int forward;
     int lexemeBegin;
     int currentBuffer;   // 1 or 2
+    int lineNo;
     FILE *fp;
 } twinBuffer;
 

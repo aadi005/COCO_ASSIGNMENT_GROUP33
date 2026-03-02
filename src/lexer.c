@@ -203,6 +203,7 @@ twinBuffer* initializeLexer(FILE *fp) {
     tb->forward = 0;
     tb->lexemeBegin = 0;
     tb->currentBuffer = 1;
+    tb->lineNo = 1;
 
     memset(tb->buffer1, 0, BUFFER_SIZE);
     memset(tb->buffer2, 0, BUFFER_SIZE);
@@ -267,11 +268,10 @@ tokenInfo getNextToken(twinBuffer *tb) {
     int ch;                    // now holds EOF sentinel as an int
     tokenInfo tk;
     int lp = 0;
-    static int lineNo = 1;
 
     // Reset lexeme and token structure
     memset(tk.lexeme, 0, MAX_LEXEME_LEN);
-    tk.lineNo = lineNo;
+    tk.lineNo = tb->lineNo;
 
     while (1) {
         ch = getNextChar(tb);
@@ -290,7 +290,7 @@ tokenInfo getNextToken(twinBuffer *tb) {
             }
             tk.token = TK_EOF;
             strcpy(tk.lexeme, "EOF");
-            tk.lineNo = lineNo;
+            tk.lineNo = tb->lineNo;
             return tk;
         }
 
@@ -312,10 +312,10 @@ tokenInfo getNextToken(twinBuffer *tb) {
         if (ch == '%') {
             tk.token = TK_COMMENT;
             strcpy(tk.lexeme, "%");
-            tk.lineNo = lineNo;
+            tk.lineNo = tb->lineNo;
             /* eat until end of line or file */
             while ((ch = getNextChar(tb)) != EOF && ch != '\n');
-            if (ch == '\n') lineNo++;
+            if (ch == '\n') tb->lineNo++;
             return tk;
         }
 
@@ -344,35 +344,43 @@ tokenInfo getNextToken(twinBuffer *tb) {
 
 
         if (input == INPUT_COUNT) {
+            /* If we are mid-lexeme and encounter an unmapped character
+               (e.g. "&&|"), finalize the current lexeme first and leave the
+               current character for the next call. */
+            if (lp > 0) {
+                retract(tb);
+                StateInfo info = acceptStateMap[currentState];
+                if (info.isFinal) {
+                    tokenInfo result = info.handler(tk.lexeme);
+                    result.lineNo = tb->lineNo;
+                    return result;
+                }
+                tk.token = TK_ERROR;
+                tk.lexeme[lp] = '\0';
+                tk.lineNo = tb->lineNo;
+                return tk;
+            }
+
             tk.token = TK_ERROR;
             tk.lexeme[0] = ch;
             tk.lexeme[1] = '\0';
-            tk.lineNo = lineNo;
+            tk.lineNo = tb->lineNo;
             return tk;
         }
 
         nextState = transitionMatrix[currentState][input];
 
         /* ---------------------------------------------------------------
-           ERRATA FIX 1 (Jan 30 notice): "23.abc" must NOT be a lexical
-           error.  Tokenize as: 23 -> TK_NUM, . -> TK_DOT, abc -> TK_FIELDID.
-
-           Problem: after reading "23." the DFA is in state 53.  When it
-           then reads a non-digit (e.g. 'a'), it transitions to the error
-           sink (state 65) with lexeme "23.".  A single retract only puts
-           the 'a' back; the '.' is already in the lexeme.
-
-           Fix: detect this specific situation (currentState==53, nextState
-           reaches the error sink) BEFORE the normal accepting-state logic,
-           perform a DOUBLE retraction (put back both the current char AND
-           the '.'), strip the '.' from the lexeme, and return TK_NUM.
+           Handle "23.abc" as: TK_NUM(23), TK_DOT(.), TK_FIELDID(abc).
+           When state 53 (after reading "<digits>.") goes to error on a
+           non-digit lookahead, retract twice so '.' is re-tokenized.
            ---------------------------------------------------------------- */
         if (currentState == 53 && (nextState == 65 || nextState == 66)) {
-            retract(tb);          /* put back the non-digit character */
-            retract(tb);          /* put back the dot */
+            retract(tb);          /* put back non-digit character */
+            retract(tb);          /* put back dot */
             if (lp > 0) { lp--; tk.lexeme[lp] = '\0'; } /* strip dot */
             tokenInfo result = handle_TK_NUM(tk.lexeme);
-            result.lineNo = lineNo;
+            result.lineNo = tb->lineNo;
             return result;
         }
 
@@ -400,12 +408,12 @@ tokenInfo getNextToken(twinBuffer *tb) {
             }
 
             /* invoke handler and return token */
-            tk.lineNo = lineNo;
+            tk.lineNo = tb->lineNo;
             tokenInfo result = nextInfo.handler(tk.lexeme);
-            result.lineNo = lineNo;
+            result.lineNo = tb->lineNo;
             return result;
         }
-        if (ch == '\n') lineNo++;
+        if (ch == '\n') tb->lineNo++;
         /* --- DELIMITER / NEWLINE HANDLING ---
            When in state 1, skip all leading whitespace (delimiters & newlines).
            When NOT in state 1 and a delimiter appears, treat it as end-of-token
@@ -445,12 +453,12 @@ tokenInfo getNextToken(twinBuffer *tb) {
         StateInfo info = acceptStateMap[currentState];
         if (info.isFinal) {
             tokenInfo result = info.handler(tk.lexeme);
-            result.lineNo = lineNo;
+            result.lineNo = tb->lineNo;
             return result;
         } else {
             tk.token = TK_ERROR;
             tk.lexeme[lp] = '\0';
-            tk.lineNo = lineNo;
+            tk.lineNo = tb->lineNo;
             return tk;
         }
     }
@@ -459,7 +467,7 @@ tokenInfo getNextToken(twinBuffer *tb) {
        ordinarily happen because it would have been returned earlier) */
     tk.token = TK_EOF;
     strcpy(tk.lexeme, "EOF");
-    tk.lineNo = lineNo;
+    tk.lineNo = tb->lineNo;
     return tk;
 }
 void initializeAcceptStateMap() {
@@ -484,8 +492,6 @@ void initializeAcceptStateMap() {
 
     acceptStateMap[10] = (StateInfo){ .handler = handle_TK_FIELDID,   .isFinal = true, .retract = true };
     acceptStateMap[14] = (StateInfo){ .handler = handle_TK_ID,      .isFinal = true, .retract = true };
-    acceptStateMap[48] = (StateInfo){ .handler = handle_TK_ID,      .isFinal = true, .retract = true };
-
     acceptStateMap[61] = (StateInfo){ .handler = handle_TK_NUM,     .isFinal = true , .retract = true };
     acceptStateMap[62] = (StateInfo){ .handler = handle_TK_RNUM,    .isFinal = true };
 
@@ -505,7 +511,6 @@ void initializeAcceptStateMap() {
     acceptStateMap[40] = (StateInfo){ .handler = handle_TK_OR,     .isFinal = true };
     acceptStateMap[51] = (StateInfo){ .handler = handle_TK_RUID,     .isFinal = true, .retract = true };
     acceptStateMap[59] = (StateInfo){ .handler = handle_TK_RNUM,     .isFinal = true, .retract = true };
-    acceptStateMap[61] = (StateInfo){ .handler = handle_TK_NUM,     .isFinal = true, .retract = true };
     acceptStateMap[65] = (StateInfo){ .handler = handle_TK_ERROR,     .isFinal = true, .retract = true };
     /* ERRATA FIX 2: state 66 reached from state 3 (after "<-") on any non-minus char.
        The Feb-2 notice says "<-" must be a lexical error.  retract=true puts back
@@ -531,7 +536,11 @@ void removeComments(char *inputFile, char *outputFile) {
     // Basic implementation: read from inputFile, skip text between % and \n, write to outputFile
     FILE *src = fopen(inputFile, "r");
     FILE *dest = fopen(outputFile, "w");
-    if (!src || !dest) return;
+    if (!src || !dest) {
+        if (src) fclose(src);
+        if (dest) fclose(dest);
+        return;
+    }
 
     int ch;
     while ((ch = fgetc(src)) != EOF) {

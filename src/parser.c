@@ -618,44 +618,115 @@ void addChild(ParseTreeNode *parent, ParseTreeNode *child) {
    PARSING  (stack-based LL(1))
    ========================================================== */
 /*
- * Skip tokens that are TK_COMMENT, TK_ERROR, TK_LENGTH_ERROR.
- * Lexical errors are printed; errors/comments are not passed to parser.
+ * Parser consumes a pre-tokenized in-memory stream.
+ * Tokenization happens once before parse starts.
  */
-static tokenInfo nextMeaningfulToken(twinBuffer *tb) {
+typedef struct {
+    tokenInfo *data;
+    size_t     count;
+    size_t     cap;
+    size_t     idx;
+} TokenStream;
+
+static void tokenStreamInit(TokenStream *ts) {
+    ts->data  = NULL;
+    ts->count = 0;
+    ts->cap   = 0;
+    ts->idx   = 0;
+}
+
+static void tokenStreamFree(TokenStream *ts) {
+    free(ts->data);
+    ts->data  = NULL;
+    ts->count = 0;
+    ts->cap   = 0;
+    ts->idx   = 0;
+}
+
+static bool tokenStreamPush(TokenStream *ts, tokenInfo tk) {
+    if (ts->count == ts->cap) {
+        size_t newCap = (ts->cap == 0) ? 256 : (ts->cap * 2);
+        tokenInfo *newData = (tokenInfo *)realloc(ts->data, newCap * sizeof(tokenInfo));
+        if (!newData) return false;
+        ts->data = newData;
+        ts->cap  = newCap;
+    }
+    ts->data[ts->count++] = tk;
+    return true;
+}
+
+static tokenInfo tokenStreamNext(TokenStream *ts) {
+    if (ts->idx < ts->count) return ts->data[ts->idx++];
+    tokenInfo eofTk;
+    memset(&eofTk, 0, sizeof(tokenInfo));
+    eofTk.token = TK_EOF;
+    strcpy(eofTk.lexeme, "EOF");
+    return eofTk;
+}
+
+static tokenInfo nextMeaningfulFromStream(TokenStream *ts) {
     tokenInfo tk;
     while (1) {
-        tk = getNextToken(tb);
-        if (tk.token == TK_COMMENT) continue;           /* skip comments silently */
+        tk = tokenStreamNext(ts);
+
+        if (tk.token == TK_COMMENT) continue;
+
         if (tk.token == TK_ERROR) {
-            /* report lexical error, skip */
             if (strlen(tk.lexeme) == 1)
-                printf("Line no %d: Lexical Error: Unknown symbol <%s>\n",
-                       tk.lineNo, tk.lexeme);
+                printf("Line %d Error: Unknown Symbol <%s>\n", tk.lineNo, tk.lexeme);
             else
-                printf("Line no %d: Lexical Error: Unknown pattern <%s>\n",
-                       tk.lineNo, tk.lexeme);
+                printf("Line %d Error: Unknown pattern <%s>\n", tk.lineNo, tk.lexeme);
             continue;
         }
+
         if (tk.token == TK_LENGTH_ERROR) {
-            printf("Line no %d: Lexical Error: Identifier exceeds 20 characters\n",
+            printf("Line %d Error: Variable Identifier is longer than the prescribed length of 20 characters.\n",
                    tk.lineNo);
             continue;
         }
-        break;
+
+        return tk;
     }
-    return tk;
 }
 
-ParseTreeNode *parseInputSourceCode(char *testcaseFile, ParseTableType table) {
+static bool buildTokenStream(char *testcaseFile, TokenStream *ts) {
     FILE *fp = fopen(testcaseFile, "r");
     if (!fp) {
         printf("Error: Cannot open source file '%s'\n", testcaseFile);
-        return NULL;
+        return false;
     }
 
-    /* Note: initializeAcceptStateMap() is now called once in main() before
-       parsing any files.  Removed redundant call here for efficiency. */
     twinBuffer *tb = initializeLexer(fp);
+    if (!tb) {
+        fclose(fp);
+        fprintf(stderr, "Fatal: lexer initialization failed.\n");
+        return false;
+    }
+
+    tokenStreamInit(ts);
+
+    while (1) {
+        tokenInfo tk = getNextToken(tb);
+        if (!tokenStreamPush(ts, tk)) {
+            fprintf(stderr, "Fatal: token stream allocation failed.\n");
+            free(tb);
+            fclose(fp);
+            tokenStreamFree(ts);
+            return false;
+        }
+
+        if (tk.token == TK_EOF) break;
+    }
+
+    free(tb);
+    fclose(fp);
+    return true;
+}
+
+ParseTreeNode *parseInputSourceCode(char *testcaseFile, ParseTableType table) {
+    TokenStream stream;
+    if (!buildTokenStream(testcaseFile, &stream))
+        return NULL;
 
     /* ---- Build parse tree root ---- */
     GrammarSymbol startSym = NT(NT_PROGRAM);
@@ -673,7 +744,7 @@ ParseTreeNode *parseInputSourceCode(char *testcaseFile, ParseTableType table) {
     stackPush(&stack, startSym, root);
 
     /* ---- Get first token ---- */
-    tokenInfo lookahead = nextMeaningfulToken(tb);
+    tokenInfo lookahead = nextMeaningfulFromStream(&stream);
 
     bool syntaxOK = true;
 
@@ -695,25 +766,18 @@ ParseTreeNode *parseInputSourceCode(char *testcaseFile, ParseTableType table) {
                 free(popped);
 
                 if (lookahead.token != TK_EOF)
-                    lookahead = nextMeaningfulToken(tb);
+                    lookahead = nextMeaningfulFromStream(&stream);
             } else {
                 /* Mismatch error */
-                if (top.terminal == TK_EOF) {
-                    printf("Line no %d: Syntax Error: Extra tokens after end of program\n",
-                           lookahead.lineNo);
-                } else {
-                    printf("Line no %d: Syntax Error: Expected %s but got %s (%s)\n",
-                           lookahead.lineNo,
-                           tokenNameStr[top.terminal],
-                           lookahead.lexeme,
-                           (lookahead.token < NUM_TOKENS) ? tokenNameStr[lookahead.token] : "UNKNOWN");
-                }
+                printf("Line %d Error: The token %s for lexeme %s does not match with the expected token %s\n",
+                       lookahead.lineNo,
+                       (lookahead.token < NUM_TOKENS) ? tokenNameStr[lookahead.token] : "UNKNOWN",
+                       lookahead.lexeme,
+                       tokenNameStr[top.terminal]);
                 syntaxOK = false;
                 StackElem *popped = stackPop(&stack);
                 free(popped);
-                /* Simple error recovery: skip the bad token if EOF not reached */
-                if (lookahead.token != TK_EOF)
-                    lookahead = nextMeaningfulToken(tb);
+                /* Insertion-style recovery: pop expected terminal, keep lookahead. */
             }
             continue;
         }
@@ -724,30 +788,52 @@ ParseTreeNode *parseInputSourceCode(char *testcaseFile, ParseTableType table) {
 
         /* Guard: token must be within table range */
         if (token < 0 || token >= NUM_TOKENS) {
-            printf("Line no %d: Syntax Error: Unexpected token '%s'\n",
-                   lookahead.lineNo, lookahead.lexeme);
+            printf("Line %d Error: Invalid token UNKNOWN encountered with value %s stack top %s\n",
+                   lookahead.lineNo, lookahead.lexeme, ntNames[A]);
             syntaxOK = false;
             StackElem *popped = stackPop(&stack);
             free(popped);
             if (lookahead.token != TK_EOF)
-                lookahead = nextMeaningfulToken(tb);
+                lookahead = nextMeaningfulFromStream(&stream);
             continue;
         }
 
         int ruleIdx = table[A][token];
 
         if (ruleIdx == -1) {
-            /* No rule: syntax error */
-            printf("Line no %d: Syntax Error: Unexpected token <%s> while parsing <%s>\n",
-                   lookahead.lineNo, lookahead.lexeme, ntNames[A]);
-            syntaxOK = false;
+            /* Avoid noisy EOF cascades at end of parse. */
+            if (lookahead.token == TK_EOF) {
+                StackElem *popped = stackPop(&stack);
+                free(popped);
+                continue;
+            }
 
-            /* Error recovery: pop the NT and try to continue */
+            /* Suppress common cascading errors on dangling else by
+               treating nullable tails as synchronisable. */
+            if ((A == NT_OPTION_SINGLE_CONSTR || A == NT_TERM_PRIME || A == NT_EXP_PRIME) &&
+                lookahead.token == TK_ELSE) {
+                StackElem *popped = stackPop(&stack);
+                free(popped);
+                continue;
+            }
+
+            /* No rule: syntax error */
+            printf("Line %d Error: Invalid token %s encountered with value %s stack top %s\n",
+                   lookahead.lineNo,
+                   (lookahead.token < NUM_TOKENS) ? tokenNameStr[lookahead.token] : "UNKNOWN",
+                   lookahead.lexeme,
+                   ntNames[A]);
+            syntaxOK = false;
+            /* Panic-mode recovery:
+               discard input until token in FOLLOW(A), then pop A. */
+            while (lookahead.token != TK_EOF &&
+                   !(lookahead.token >= 0 &&
+                     lookahead.token < FOLLOW_SIZE &&
+                     FF.follow[A][lookahead.token])) {
+                lookahead = nextMeaningfulFromStream(&stream);
+            }
             StackElem *popped = stackPop(&stack);
             free(popped);
-            /* Advance input to try to re-synchronise */
-            if (lookahead.token != TK_EOF)
-                lookahead = nextMeaningfulToken(tb);
             continue;
         }
 
@@ -777,8 +863,7 @@ ParseTreeNode *parseInputSourceCode(char *testcaseFile, ParseTableType table) {
         }
     }
 
-    fclose(fp);
-    free(tb);
+    tokenStreamFree(&stream);
 
     if (syntaxOK)
         printf("\nInput source code is syntactically correct...........\n");

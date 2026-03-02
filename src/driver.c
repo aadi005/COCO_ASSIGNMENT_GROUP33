@@ -109,7 +109,6 @@ int main(int argc, char *argv[]) {
             while (1) {
                 tk = getNextToken(tb);
                 if (tk.token == TK_EOF)   break;
-                if (tk.token == TK_COMMENT) continue;
                 printToken(tk);
             }
 
