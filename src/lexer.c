@@ -212,10 +212,25 @@ tokenInfo getNextToken(twinBuffer *tb) {
     while (1) {
         ch = getNextChar(tb);
 
-        if (ch == EOF) {
-            if (lp > 0) {
-                break;
+        // If EOF comes with a pending lexeme, finalize that lexeme first.
+        if (ch == EOF && lp > 0) {
+            InputType input = EOF_TYPE;
+            nextState = transitionMatrix[currentState][input];
+
+            StateInfo nextInfo = acceptStateMap[nextState];
+            if (nextInfo.isFinal) {
+                tokenInfo result = nextInfo.handler(tk.lexeme);
+                result.lineNo = tb->lineNo;
+                return result;
             }
+
+            tk.token = TK_ERROR;
+            tk.lexeme[lp] = '\0';
+            tk.lineNo = tb->lineNo;
+            return tk;
+        }
+
+        if (ch == EOF) {
             tk.token = TK_EOF;
             strcpy(tk.lexeme, "EOF");
             tk.lineNo = tb->lineNo;
